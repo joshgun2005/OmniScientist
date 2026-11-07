@@ -489,6 +489,7 @@ M["ngd_9m"] = fmt(V["ngd_9m"], 1)
 M["ngd_plan_law"] = fmt(V["ngd_plan_law"], 0)
 M["ngd_plan_upd"] = fmt(V["ngd_plan_upd"], 1)
 M["deficit_year"] = fmt(V["deficit_year"], 0)
+M["deficit_9m"] = fmt(V["deficit_9m"], 0)
 
 payload = {"inputs": V, "derived": D, "formatted": M}
 with open(os.path.join(OUT, "metrics.json"), "w", encoding="utf-8") as f:

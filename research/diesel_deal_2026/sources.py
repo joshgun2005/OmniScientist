@@ -1,136 +1,115 @@
 # -*- coding: utf-8 -*-
 """Реестр источников статьи.
 
-Один элемент — одна запись в списке литературы. Поле `cited` хранит
-фрагмент текста, где источник используется, чтобы можно было проверить
-соответствие ссылок и утверждений (сквозная проверка в build_docx.py).
+Записи упорядочены по порядку первого упоминания в тексте (ГОСТ Р 7.0.5-2008,
+требования перечней ВАК). Для научных публикаций указаны страницы и DOI, для
+статистических и нормативных источников — прямая ссылка на конкретный документ
+или ряд данных, а не на главную страницу сайта.
+
+Поле `key` используется в тексте статьи в виде токена [@@key] или [@@key#с. 12–14].
 """
 
 SOURCES = [
-    # ---------------------------------------------------------- нормативные
-    dict(key="ofac2026", kind="norm",
-         ref="OFAC. General License No. 135: Authorizing Certain Transactions Related to Russian-Origin "
-             "Diesel Fuel. U.S. Department of the Treasury, Office of Foreign Assets Control, 9 October 2026.",
-         short="Генеральная лицензия OFAC № 135"),
-    dict(key="pl117109", kind="norm",
-         ref="Ending Importation of Russian Oil Act. Public Law 117-109, 136 Stat. 1154 (8 April 2022); "
-             "22 U.S.C. § 8923.",
-         short="Ending Importation of Russian Oil Act"),
-    dict(key="eo14066", kind="norm",
-         ref="Executive Order 14066 of March 8, 2022: Prohibiting Certain Imports and New Investments "
-             "With Respect to Continued Russian Federation Aggression. Federal Register, 2022, vol. 87, no. 50.",
-         short="Указ № 14066"),
+    dict(key="eia_stocks", kind="stat",
+         ref="Weekly U.S. Ending Stocks of Distillate Fuel Oil : series WDISTUS1 // U.S. Energy Information Administration. — URL: https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=WDISTUS1&f=W (accessed: 06.11.2026).",
+         short="EIA, запасы дистиллятов"),
+    dict(key="eia_prices", kind="stat",
+         ref="Weekly U.S. No. 2 Diesel Retail Prices : series EMD_EPD2D_PTE_NUS_DPG // U.S. Energy Information Administration. — URL: https://www.eia.gov/dnav/pet/hist/LeafHandler.ashx?n=PET&s=EMD_EPD2D_PTE_NUS_DPG&f=W (accessed: 06.11.2026).",
+         short="EIA, розничные цены на дизель"),
     dict(key="kremlin2026", kind="norm",
-         ref="Кремль. Заявление Президента Российской Федерации по итогам телефонного разговора "
-             "с Президентом США. 9 октября 2026 г. URL: http://www.kremlin.ru (дата обращения: 06.11.2026).",
+         ref="Заявление Президента Российской Федерации Владимира Путина по итогам телефонного разговора с Президентом США Д. Трампом, 9 октября 2026 года // Президент России. — URL: http://kremlin.ru/events/president/news/80960 (дата обращения: 06.11.2026).",
          short="заявление Кремля от 09.10.2026"),
     dict(key="trump2026", kind="norm",
-         ref="Truth Social. Запись Д. Трампа об итогах переговоров с В. Путиным. 9 октября 2026 г.",
+         ref="Трамп, Д. Запись о телефонном разговоре с В. Путиным и договорённости о поставках дизельного топлива на американский и мировой рынки, 9 октября 2026 г. / Д. Трамп // Truth Social. — URL: https://truthsocial.com/@realDonaldTrump (дата обращения: 06.11.2026). — Текст записи цит. по: Trump announces major diesel deal with Putin, infuriating Ukraine // Axios. — 2026. — 9 October. — URL: https://www.axios.com/2026/10/09/trump-putin-diesel-agreement-ukraine-war (accessed: 06.11.2026).",
          short="запись Д. Трампа от 09.10.2026"),
-
-    # ---------------------------------------------------------- статистика
-    dict(key="eia_stocks", kind="stat",
-         ref="U.S. Energy Information Administration. Weekly Petroleum Status Report. Washington, D.C.: EIA, "
-             "2026. URL: https://www.eia.gov/petroleum/supply/weekly/ (accessed: 06.11.2026).",
-         short="EIA, Weekly Petroleum Status Report"),
-    dict(key="eia_sto", kind="stat",
-         ref="U.S. Energy Information Administration. Short-Term Energy Outlook. September 2026. "
-             "Washington, D.C.: EIA, 2026. URL: https://www.eia.gov/outlooks/steo/ (accessed: 06.11.2026).",
-         short="EIA, Short-Term Energy Outlook"),
-    dict(key="iea2026", kind="stat",
-         ref="International Energy Agency. Oil Market Report. Paris: IEA, September 2026.",
-         short="МЭА, Oil Market Report"),
-    dict(key="minfin2026", kind="stat",
-         ref="Министерство финансов Российской Федерации. Краткая информация об исполнении федерального "
-             "бюджета за январь–октябрь 2026 г. М.: Минфин России, 2026. "
-             "URL: https://minfin.gov.ru (дата обращения: 06.11.2026).",
-         short="Минфин России, отчётность об исполнении бюджета"),
-    dict(key="cbr2026", kind="stat",
-         ref="Банк России. Официальные курсы валют на 6 ноября 2026 г. М.: Банк России, 2026. "
-             "URL: https://www.cbr.ru/currency_base/ (дата обращения: 06.11.2026).",
-         short="Банк России, официальные курсы"),
-    dict(key="kpler2026", kind="stat",
-         ref="Kpler. Seaborne Diesel and Gasoil Trade Flows, 2025–2026. Rotterdam: Kpler, 2026. "
-             "(цит. по публикациям Reuters и ИРТТЭК от 12–23 октября 2026 г.).",
-         short="данные Kpler"),
-    dict(key="jodi2026", kind="stat",
-         ref="Joint Organizations Data Initiative (JODI-Oil). World Database. Riyadh: IEF, 2026. "
-             "URL: https://www.jodidata.org (accessed: 06.11.2026).",
-         short="JODI-Oil"),
-
-    # ---------------------------------------------------------- научная литература
-    dict(key="gurvich2010", kind="sci",
-         ref="Гурвич Е. Т. Нефтегазовая рента в российской экономике // Вопросы экономики. 2010. № 11. С. 4–24.",
-         short="Е. Т. Гурвич"),
-    dict(key="cherniavsky2025", kind="sci",
-         ref="Чернявский А. В., Чепель А. А. Межотраслевой анализ влияния торговых санкций на российскую "
-             "экономику // Вопросы экономики. 2025. № 3. С. 29–47. DOI: 10.32609/0042-8736-2025-3-29-47.",
-         short="А. В. Чернявский, А. А. Чепель"),
     dict(key="hausmann2024", kind="sci",
-         ref="Hausmann R., Schetter U., Yildirim M. A. On the Design of Effective Sanctions: The Case of Bans "
-             "on Exports to Russia // Economic Policy. 2024. Vol. 39, no. 117. P. 109–153. "
-             "DOI: 10.1093/epolic/eiad043.",
+         ref="Hausmann, R. On the design of effective sanctions: the case of bans on exports to Russia / R. Hausmann, U. Schetter, M. A. Yildirim // Economic Policy. — 2024. — Vol. 39, no. 117. — P. 109–153. — DOI 10.1093/epolic/eiad043. — URL: https://doi.org/10.1093/epolic/eiad043 (accessed: 06.11.2026).",
          short="R. Hausmann et al."),
     dict(key="fouad2024", kind="sci",
-         ref="Fouad K. The Russian Oil Ban: Reassessment of the Effectiveness of Sanctions // European Journal "
-             "on Criminal Policy and Research. 2024. Vol. 30. P. 261–276. DOI: 10.1007/s10610-024-09583-z.",
+         ref="Fouad, K. The Russian oil ban: reassessment of the effectiveness of sanctions / K. Fouad // European Journal on Criminal Policy and Research. — 2024. — Vol. 30, no. 2. — P. 261–276. — DOI 10.1007/s10610-024-09583-z. — URL: https://link.springer.com/article/10.1007/s10610-024-09583-z (accessed: 06.11.2026).",
          short="K. Fouad"),
     dict(key="timofeev2020", kind="sci",
-         ref="Тимофеев И. Н. «Санкции за нарушение санкций»: принудительные меры Министерства финансов США "
-             "против компаний финансового сектора // Полис. Политические исследования. 2020. № 6. С. 73–90. "
-             "DOI: 10.17976/jpps/2020.06.06.",
+         ref="Тимофеев, И. Н. «Санкции за нарушение санкций»: принудительные меры Министерства финансов США против компаний финансового сектора / И. Н. Тимофеев // Полис. Политические исследования. — 2020. — № 6. — С. 73–90. — DOI 10.17976/jpps/2020.06.06. — URL: https://www.politstudies.ru/article/5720 (дата обращения: 06.11.2026).",
          short="И. Н. Тимофеев"),
+    dict(key="cherniavsky2025", kind="sci",
+         ref="Чернявский, А. В. Оценка влияния экспортных и импортных санкций на российскую экономику с использованием таблиц «затраты—выпуск» / А. В. Чернявский, А. А. Чепель // Вопросы экономики. — 2025. — № 3. — С. 29–47. — DOI 10.32609/0042-8736-2025-3-29-47. — URL: https://www.vopreco.ru/jour/article/view/5108 (дата обращения: 06.11.2026).",
+         short="А. В. Чернявский, А. А. Чепель"),
     dict(key="timofeev2023", kind="sci",
-         ref="Тимофеев И. Н. Политика санкций в законопроектах Конгресса США // Международные процессы. "
-             "2023. Т. 21, № 2. DOI: 10.17994/IT.2023.21.2.73.1.",
+         ref="Тимофеев, И. Н. Политика санкций в законопроектах Конгресса США / И. Н. Тимофеев // Международные процессы. — 2023. — Т. 21, № 2. — С. 6–21. — DOI 10.17994/IT.2023.21.2.73.1. — URL: https://www.intertrends.ru/jour/article/view/333 (дата обращения: 06.11.2026).",
          short="И. Н. Тимофеев (2023)"),
+    dict(key="gurvich2010", kind="sci",
+         ref="Гурвич, Е. Т. Нефтегазовая рента в российской экономике / Е. Т. Гурвич // Вопросы экономики. — 2010. — № 11. — С. 4–24. — DOI 10.32609/0042-8736-2010-11-4-24. — URL: https://doi.org/10.32609/0042-8736-2010-11-4-24 (дата обращения: 06.11.2026).",
+         short="Е. Т. Гурвич"),
     dict(key="kilmetov2025", kind="sci",
-         ref="Кильметов А. Р., Анисимов А. Ю. Оценка экономической устойчивости предприятий нефтегазовой "
-             "отрасли в условиях санкций // Экономика, предпринимательство и право. 2025. Т. 15, № 1. "
-             "С. 483–498. DOI: 10.18334/epp.15.1.122520.",
+         ref="Кильметов, А. Р. Оценка экономической устойчивости предприятий нефтегазовой отрасли в условиях санкций / А. Р. Кильметов, А. Ю. Анисимов // Экономика, предпринимательство и право. — 2025. — Т. 15, № 1. — С. 483–498. — DOI 10.18334/epp.15.1.122520. — EDN MOTROT. — URL: https://1economic.ru/lib/122520 (дата обращения: 06.11.2026).",
          short="А. Р. Кильметов, А. Ю. Анисимов"),
-    dict(key="andrade2025", kind="sci",
-         ref="Andrade G. B., Krykhtine F., Cosenza C. A. N., Silva V. C. Russian Oil Trade in the Face of "
-             "Economic Sanctions // Вестник Российского университета дружбы народов. Серия: Экономика. "
-             "2025. Т. 33, № 1. С. 26–39. DOI: 10.22363/2313-2329-2025-33-1-26-39.",
-         short="G. B. Andrade et al."),
     dict(key="braginsky2024", kind="sci",
-         ref="Брагинский О. Б. Развитие нефтегазохимической отрасли России в условиях ужесточения "
-             "экономических санкций // Экономическая наука современной России. 2024. № 3 (106). С. 51–65.",
+         ref="Брагинский, О. Б. Развитие нефтегазохимической отрасли России в условиях ужесточения экономических санкций / О. Б. Брагинский // Экономическая наука современной России. — 2024. — № 3 (106). — С. 51–65. — DOI 10.33293/1609-1442-2024-3(106)-51-65. — URL: https://www.ecr-journal.ru/jour/article/view/1012 (дата обращения: 06.11.2026).",
          short="О. Б. Брагинский"),
-
-    # ---------------------------------------------------------- экспертно-аналитические публикации
+    dict(key="andrade2025", kind="sci",
+         ref="Andrade, G. B. Russian oil trade in the face of economic sanctions / G. B. Andrade, F. Krykhtine, C. A. N. Cosenza, V. C. Silva // RUDN Journal of Economics. — 2025. — Vol. 33, no. 1. — P. 26–39. — DOI 10.22363/2313-2329-2025-33-1-26-39. — EDN RPKQZZ. — URL: https://journals.rudn.ru/economics/article/view/43978 (accessed: 06.11.2026).",
+         short="G. B. Andrade et al."),
+    dict(key="ofac2026", kind="norm",
+         ref="Генеральная лицензия № 135 Управления по контролю за иностранными активами Минфина США «Authorizing Transactions Related to the Sale, Delivery, Offloading, and Importation of Diesel Fuel of Russian Federation Origin» от 9 октября 2026 г. // U.S. Department of the Treasury. Office of Foreign Assets Control. — URL: https://ofac.treasury.gov/media/937216/download?inline (дата обращения: 06.11.2026) ; Issuance of Russia-related General License : recent action of 09.10.2026. — URL: https://ofac.treasury.gov/recent-actions/20261009_33 (дата обращения: 06.11.2026).",
+         short="Генеральная лицензия OFAC № 135"),
+    dict(key="pl117109", kind="norm",
+         ref="Ending Importation of Russian Oil Act : Public Law 117-109, 136 Stat. 1154 (Apr. 8, 2022) // U.S. Government Publishing Office. — URL: https://www.govinfo.gov/content/pkg/PLAW-117publ109/pdf/PLAW-117publ109.pdf (accessed: 06.11.2026).",
+         short="Ending Importation of Russian Oil Act"),
+    dict(key="eo14066", kind="norm",
+         ref="Executive Order 14066 of March 8, 2022 : Prohibiting Certain Imports and New Investments With Respect to Continued Russian Federation Efforts To Undermine the Sovereignty and Territorial Integrity of Ukraine // Federal Register. — 2022. — Vol. 87. — P. 13625–13626 (FR Doc. 2022-05232). — URL: https://www.federalregister.gov/documents/2022/03/10/2022-05232/prohibiting-certain-imports-and-new-investments-with-respect-to-continued-russian-federation-efforts (accessed: 06.11.2026).",
+         short="Указ № 14066"),
+    dict(key="eia_sto", kind="stat",
+         ref="Short-Term Energy Outlook : September 2026 / U.S. Energy Information Administration. — Washington, D.C. : EIA, 2026. — URL: https://www.eia.gov/outlooks/steo/archives/sep26.pdf (accessed: 06.11.2026).",
+         short="EIA, Short-Term Energy Outlook"),
+    dict(key="iea2026", kind="stat",
+         ref="Oil Market Report — September 2026 / International Energy Agency. — Paris : IEA, 2026. — URL: https://www.iea.org/reports/oil-market-report-september-2026 (accessed: 06.11.2026).",
+         short="МЭА, Oil Market Report"),
+    dict(key="jodi2026", kind="stat",
+         ref="JODI-Oil World Database : data downloads (annual csv, 2026) // Joint Organisations Data Initiative. — URL: https://www.jodidata.org/oil/database/data-downloads.aspx (accessed: 06.11.2026).",
+         short="JODI-Oil"),
+    dict(key="kpler2026", kind="stat",
+         ref="Данные Kpler о морских отгрузках российского дизельного топлива, сентябрь–ноябрь 2026 г. // Kpler. — 2026. — Цит. по: Exclusive: Tanker carrying 40,000 T of Russian diesel heads to New York after Putin-Trump deal, data shows // Reuters. — 2026. — 23 October. — URL: https://www.reuters.com/business/energy/tanker-carrying-40000-t-russian-diesel-heads-new-york-after-putin-trump-deal-2026-10-23/ (accessed: 06.11.2026).",
+         short="данные Kpler"),
+    dict(key="minfin2026", kind="stat",
+         ref="Предварительная оценка исполнения федерального бюджета за январь–сентябрь 2026 года // Министерство финансов Российской Федерации. — 09.10.2026. — URL: https://minfin.gov.ru/ru/press-center/?id_4=40677-predvaritelnaya_otsenka_ispolneniya_federalnogo_byudzheta_za_yanvar-sentyabr_2026_goda (дата обращения: 06.11.2026).",
+         short="Минфин России, исполнение бюджета за январь–сентябрь"),
+    dict(key="cbr2026", kind="stat",
+         ref="Официальные курсы валют на заданную дату, устанавливаемые ежедневно : на 6 ноября 2026 г. // Банк России. — URL: https://www.cbr.ru/currency_base/daily/?UniDbQuery.Posted=True&UniDbQuery.To=06.11.2026 (дата обращения: 06.11.2026).",
+         short="Банк России, официальные курсы"),
     dict(key="carnegie2026", kind="expert",
-         ref="Вакуленко С. Что получит Россия от дизельной сделки с США и зачем она Трампу // Carnegie "
-             "Politika. 14.10.2026.",
+         ref="Вакуленко, С. Обелить существующее. Как дизельная сделка с Трампом скажется на России и мировом рынке / С. Вакуленко // Carnegie Politika. — 2026. — 13 октября. — URL: https://carnegieendowment.org/russia-eurasia/politika/2026/10/russia-usa-diesel-agreement (accessed: 06.11.2026).",
          short="С. Вакуленко (Carnegie Politika)"),
     dict(key="irttek2026", kind="expert",
-         ref="Кулагин В. Россия открывает экспорт дизеля: первые 500 тыс. тонн — около 15 % обычного "
-             "месяца // Институт развития технологий ТЭК. 12.10.2026.",
+         ref="Россия открывает экспорт дизеля: первые 500 тыс. тонн — около 15 % обычного месяца // Институт развития технологий ТЭК. — 12.10.2026. — URL: https://irttek.com/articles/rossiya-otkryvaet-eksport-dizelya-pervye-500-tys-tonn-okolo-15-obychnogo-mesyatsa/ (дата обращения: 06.11.2026).",
          short="ИРТТЭК"),
     dict(key="reuters_kpler2026", kind="expert",
-         ref="First Tanker with Russian Diesel Heads to the U.S. // Reuters. 2026. 22 October.",
-         short="Reuters (22.10.2026)"),
+         ref="First Russian diesel from Putin–Trump deal heading for US, data shows // Reuters. — 2026. — 23 October (updated 29 October). — URL: https://www.reuters.com/business/energy/tanker-carrying-40000-t-russian-diesel-heads-new-york-after-putin-trump-deal-2026-10-23/ (accessed: 06.11.2026).",
+         short="Reuters (23.10.2026)"),
     dict(key="ft2026", kind="expert",
-         ref="Russian Diesel Tankers Change Course as Deal Frays // Financial Times. 2026. 4 November.",
+         ref="Smyth, J. Trump diesel deal with Russia falters as US fuel supplies hit 20-year low / J. Smyth, A. Hancock // Financial Times. — 2026. — 4 November. — URL: https://www.ft.com/content/f66ebf48-6d09-4a91-9af5-8bf7adca65ba (accessed: 06.11.2026).",
          short="Financial Times (04.11.2026)"),
-    dict(key="rg2026", kind="expert",
-         ref="Симонов К. В., Тюня Д. Почему США не могут остановить дизельный кризис и какие риски есть "
-             "для России // Российская газета. 26.10.2026.",
-         short="К. В. Симонов, Д. Тюня"),
-    dict(key="wsj2026", kind="expert",
-         ref="U.S. Diesel Prices Keep Climbing Despite Russian Deal // The Wall Street Journal. 2026. 28 October.",
-         short="The Wall Street Journal (28.10.2026)"),
     dict(key="dw2026", kind="expert",
-         ref="Дизельная сделка между Россией и США и частичное снятие санкций с РФ // Deutsche Welle. "
-             "12.10.2026.",
+         ref="Дизельная сделка Трампа и Путина : досье // Deutsche Welle. — 12.10.2026. — URL: https://www.dw.com/ru/dizelnaa-sdelka-mezdu-ssa-i-rossiej/a-79641707 (дата обращения: 06.11.2026).",
          short="Deutsche Welle (12.10.2026)"),
     dict(key="lenta2026", kind="expert",
-         ref="«Трампу достанется»: дизельная сделка России и США оказалась под угрозой срыва // Lenta.ru. "
-             "28.10.2026.",
+         ref="«Трампу достанется»: дизельная сделка России и США оказалась под угрозой срыва. Что задумали демократы и чем ответит Белый дом? // Lenta.ru. — 2026. — 28 октября. — URL: https://lenta.ru/brief/2026/10/28/trampu-dostanetsya/ (дата обращения: 06.11.2026).",
          short="Lenta.ru (28.10.2026)"),
+    dict(key="interfax2026", kind="expert",
+         ref="Нефтяники в октябре получили по демпферу 415 млрд руб. // Интерфакс. — 2026. — 5 ноября. — URL: https://www.interfax.ru/business/1127136 (дата обращения: 06.11.2026).",
+         short="Интерфакс (05.11.2026)"),
+    dict(key="interfax2026oct", kind="expert",
+         ref="Кабмин РФ продлил до 31 января 2027 г. запрет на экспорт дизтоплива для производителей // Интерфакс. — 2026. — 31 октября. — URL: https://www.interfax.ru/business/1126298 (дата обращения: 06.11.2026).",
+         short="Интерфакс (31.10.2026)"),
+    dict(key="rg2026", kind="expert",
+         ref="Тихонов, С. Почему США не могут остановить дизельный кризис и какие риски есть для России? Разбор «РГ» / С. Тихонов // Российская газета. — 2026. — 26 октября. — URL: https://rg.ru/2026/10/26/palitra-litra.html (дата обращения: 06.11.2026).",
+         short="К. В. Симонов, Д. Тюня"),
     dict(key="energypolicy2026", kind="expert",
-         ref="Россия в августе сократила экспорт нефти до 6,44 млн б/с, доходы выросли до 13,87 млрд долл. // "
-             "Энергетическая политика. 11.09.2026.",
+         ref="Россия в августе сократила экспорт нефти до 6,44 млн б/с, доходы выросли до $13,87 млрд // Энергетическая политика. — 11.09.2026. — URL: https://energy-policy.ru/rossiya-v-avguste-sokratila-eksport-nefti-do-644-mln-b-s-dohody-vyrosli-do-1387-mlrd/novosti/2026/09/11/ (дата обращения: 06.11.2026).",
          short="«Энергетическая политика» (11.09.2026)"),
+    dict(key="minfin2026oct", kind="stat",
+         ref="Краткая ежемесячная информация об исполнении федерального бюджета (млрд руб., накоплено с начала года) : на 1 ноября 2026 г. // Министерство финансов Российской Федерации. — URL: https://minfin.gov.ru/ru/document?TAG_ID_4%5B%5D=73 (дата обращения: 06.11.2026).",
+         short="Минфин России, исполнение бюджета за январь–октябрь"),
+    dict(key="consilium2026", kind="expert",
+         ref="Russia’s war of aggression against Ukraine: EU agrees largest-ever package of listings targeting almost 1600 individuals and entities in Russia’s military-industrial complex : press release, 12 October 2026 // Council of the European Union. — URL: https://www.consilium.europa.eu/en/press/press-releases/2026/10/12/russia-s-war-of-aggression-against-ukraine-eu-agrees-largest-ever-package-of-listings-targeting-almost-1600-individuals-and-entities-in-russia-s-military-industrial-complex/ (accessed: 06.11.2026).",
+         short="Совет ЕС (12.10.2026)"),
 ]
