@@ -113,6 +113,10 @@ for b in BLOCKS:
         story.append(Spacer(1, 3))
     elif t == "cap":
         st = S["cap"]
+        nxt = BLOCKS[BLOCKS.index(b) + 1]["t"] if BLOCKS.index(b) + 1 < len(BLOCKS) else None
+        if nxt in ("table", "img"):
+            story.append(KeepTogether([Paragraph(esc(b["text"]), S["cap"])]))
+            continue
         if b.get("align") == "left":
             st = ParagraphStyle("capl", parent=st, alignment=TA_LEFT)
         elif b.get("align") == "center":
