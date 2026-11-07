@@ -1,0 +1,84 @@
+МОДЕЛЬ М1. Зависимая переменная: цена Brent, долл./барр.
+Выборка: 1987-05–2026-10, n = 474
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                  brent   R-squared:                       0.985
+Model:                            OLS   Adj. R-squared:                  0.985
+Method:                 Least Squares   F-statistic:                 3.634e+05
+Date:                Sat, 07 Nov 2026   Prob (F-statistic):               0.00
+Time:                        18:33:58   Log-Likelihood:                -1338.9
+No. Observations:                 474   AIC:                             2690.
+Df Residuals:                     468   BIC:                             2715.
+Df Model:                           5                                         
+Covariance Type:                  HAC                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+const         -4.3811      0.517     -8.466      0.000      -5.395      -3.367
+wti            1.0833      0.037     29.645      0.000       1.012       1.155
+d_cap         -1.3543      0.850     -1.594      0.111      -3.019       0.311
+d_embargo      0.5088      0.521      0.977      0.328      -0.512       1.529
+d_hormuz      14.4587      1.006     14.369      0.000      12.486      16.431
+trend          0.1046      0.061      1.726      0.084      -0.014       0.223
+==============================================================================
+Omnibus:                      156.412   Durbin-Watson:                   0.216
+Prob(Omnibus):                  0.000   Jarque-Bera (JB):              775.538
+Skew:                           1.360   Prob(JB):                    3.93e-169
+Kurtosis:                       8.645   Cond. No.                     1.37e+03
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity and autocorrelation robust (HAC) using 6 lags and without small sample correction
+[2] The condition number is large, 1.37e+03. This might indicate that there are
+strong multicollinearity or other numerical problems.
+
+МОДЕЛЬ М2. Зависимая переменная: дифференциал Urals–Brent
+                            OLS Regression Results                            
+==============================================================================
+Dep. Variable:                      y   R-squared:                       0.525
+Model:                            OLS   Adj. R-squared:                  0.415
+Method:                 Least Squares   F-statistic:                     9.661
+Date:                Sat, 07 Nov 2026   Prob (F-statistic):            0.00128
+Time:                        18:33:58   Log-Likelihood:                -47.438
+No. Observations:                  17   AIC:                             102.9
+Df Residuals:                      13   BIC:                             106.2
+Df Model:                           3                                         
+Covariance Type:                  HAC                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+const         21.6245      3.474      6.225      0.000      14.816      28.433
+brent         -0.0895      0.028     -3.219      0.001      -0.144      -0.035
+d_cap_2026    12.0208      2.790      4.308      0.000       6.552      17.489
+d_peak        -1.9823      0.694     -2.857      0.004      -3.342      -0.622
+==============================================================================
+Omnibus:                        5.407   Durbin-Watson:                   0.893
+Prob(Omnibus):                  0.067   Jarque-Bera (JB):                3.091
+Skew:                           1.005   Prob(JB):                        0.213
+Kurtosis:                       3.567   Cond. No.                         519.
+==============================================================================
+
+Notes:
+[1] Standard Errors are heteroscedasticity and autocorrelation robust (HAC) using 2 lags and without small sample correction
+
+МОДЕЛЬ М3. AR(1) для логарифма цены Brent
+                            AutoReg Model Results                             
+==============================================================================
+Dep. Variable:                  brent   No. Observations:                  473
+Model:                     AutoReg(1)   Log Likelihood                 422.275
+Method:               Conditional MLE   S.D. of innovations              0.099
+Date:                Sat, 07 Nov 2026   AIC                           -838.550
+Time:                        18:33:58   BIC                           -826.073
+Sample:                    06-30-1987   HQIC                          -833.643
+                         - 10-31-2026                                         
+==============================================================================
+                 coef    std err          z      P>|z|      [0.025      0.975]
+------------------------------------------------------------------------------
+const          0.0359      0.024      1.474      0.140      -0.012       0.084
+brent.L1       0.9914      0.006    154.053      0.000       0.979       1.004
+                                    Roots                                    
+=============================================================================
+                  Real          Imaginary           Modulus         Frequency
+-----------------------------------------------------------------------------
+AR.1            1.0087           +0.0000j            1.0087            0.0000
+-----------------------------------------------------------------------------
