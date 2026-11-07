@@ -34,6 +34,8 @@ OUT = os.path.join(BASE, "out")
 DATA = os.path.join(BASE, "data")
 
 from facts import ALL, value  # noqa: E402
+from facts_az import gas_frame, oil_frame, period_brent  # noqa: E402
+
 
 
 def load_pair():
@@ -247,8 +249,166 @@ def text_dump():
     return "\n".join(lines)
 
 
+# ------------------------------------------------------- модели по Азербайджану
+def az_gas_frame():
+    """Контрактные цены азербайджанского газа и средний Brent за тот же период.
+
+    Биржевых котировок азербайджанского газа не существует, поэтому
+    используются контрактные (таможенные) цены: стоимость экспорта делится
+    на объём по декларациям ГТК АР (facts_az.py). Это цены исполненных
+    сделок: в них уже учтены формульные привязки, лаги и структура поставок
+    по направлениям (Турция, Италия, Грузия, Сербия).
+    """
+    g = gas_frame().copy()
+    brent = []
+    for period in g.index:
+        year = period[:4]
+        start = "2024-01" if year == "2024" else f"{year}-01"
+        brent.append(round(period_brent(start, period), 2))
+    g["brent_avg"] = brent
+    g["d2026"] = g.index.str.startswith("2026").astype(int)
+    return g
+
+
+def az_gas_increments(g):
+    """Месячные приросты накопленных рядов -> цена отдельного месяца."""
+    rows = []
+    for (p1, r1), (p2, r2) in zip(g.iterrows(), g.iloc[1:].iterrows()):
+        y1, m1 = p1.split("-")
+        y2, m2 = p2.split("-")
+        if y1 != y2:                       # переход через год — не месячный шаг
+            continue
+        if int(m2) - int(m1) != 1:         # между отсечками пропуск месяцев
+            continue
+        dv = r2["value_bn_usd"] - r1["value_bn_usd"]
+        dq = r2["volume_bcm"] - r1["volume_bcm"]
+        if dq <= 0:
+            continue
+        price = dv * 1000 / dq
+        rows.append({"period": p2,
+                     "usd_per_1000m3": round(price, 1),
+                     "usd_per_mmbtu": round(price / 35.11, 2),
+                     "brent": round(period_brent(p2, p2), 2)})
+    return pd.DataFrame(rows).set_index("period")
+
+
+def model4(g):
+    """М4: средняя контрактная цена газа (долл./млн БТЕ) ~ Brent и сдвиг 2026 г.
+
+    Уровневая спецификация на накопленных периодах: показывает, что при
+    росте нефтяных цен на 1 долл./барр. контрактная цена газа меняется
+    слабо, а институциональный сдвиг 2026 г. действует в противоположном
+    направлении. Ограничение — накопленные периоды перекрываются, поэтому
+    ошибки коррелированы, используется поправка Ньюи — Уэста.
+    """
+    X = sm.add_constant(g[["brent_avg", "d2026"]])
+    y = g["usd_per_mmbtu"]
+    m = sm.OLS(y, X).fit(cov_type="HAC", cov_kwds={"maxlags": 2})
+    res = ols_table(m, "M4: контрактная цена газа Азербайджана (уровни)")
+    res["spec"] = "OLS, HAC (Newey-West, 2 лага); данные ГТК АР"
+    res["n_periods"] = f"{g.index[0]}–{g.index[-1]}"
+    res["mean_price_2025"] = round(float(
+        g[g["d2026"] == 0]["usd_per_mmbtu"].mean()), 2)
+    res["mean_price_2026"] = round(float(
+        g[g["d2026"] == 1]["usd_per_mmbtu"].mean()), 2)
+    res["mean_brent_2025"] = round(float(
+        g[g["d2026"] == 0]["brent_avg"].mean()), 2)
+    res["mean_brent_2026"] = round(float(
+        g[g["d2026"] == 1]["brent_avg"].mean()), 2)
+    return res
+
+
+def model4b(inc):
+    """М4': месячная контрактная цена газа ~ Brent (приростные наблюдения).
+
+    Ряд короткий (7 месяцев), поэтому оценивается только один регрессор.
+    Коэффициент интерпретируется как эмпирический слоп контрактной цены:
+    на 1 долл./барр. нефти приходится b долл./млн БТЕ газа.
+    """
+    X = sm.add_constant(inc[["brent"]])
+    m = sm.OLS(inc["usd_per_mmbtu"], X).fit(cov_type="HAC",
+                                            cov_kwds={"maxlags": 2})
+    res = ols_table(m, "M4': контрактная цена газа, приростные данные")
+    res["spec"] = "OLS, HAC (Newey-West, 2 лага); расчёт по приростам"
+    res["n_periods"] = f"{inc.index[0]}–{inc.index[-1]}"
+    res["slope"] = round(float(m.params["brent"]), 4)
+    res["slope_vs_parity"] = round(float(m.params["brent"]) / 0.1724, 3)
+    res["mean_price"] = round(float(inc["usd_per_mmbtu"].mean()), 2)
+    res["table"] = {str(k): {"price": float(v["usd_per_mmbtu"]),
+                             "brent": float(v["brent"]),
+                             "usd_1000m3": float(v["usd_per_1000m3"])}
+                    for k, v in inc.iterrows()}
+    return res
+
+
+def model5():
+    """М5: контрактная цена нефти Азербайджана и премия к Brent.
+
+    По декларациям доступны три отсечки, поэтому регрессия невозможна:
+    оценивается только уровень цены и премии. Это ограничение фиксируется
+    в тексте явно, а не маскируется.
+    """
+    o = oil_frame().copy()
+    bre = []
+    for period in o.index:
+        year = period[:4]
+        bre.append(round(period_brent(f"{year}-01", period), 2))
+    o["brent_avg"] = bre
+    o["premium"] = (o["usd_per_bbl"] - o["brent_avg"]).round(2)
+    return {
+        "name": "M5: контрактная цена нефти Азербайджана",
+        "spec": "описательная статистика; n = 3, регрессия невозможна",
+        "n": int(len(o)),
+        "rows": {str(k): {"usd_t": float(v["usd_per_t"]),
+                          "usd_bbl": float(v["usd_per_bbl"]),
+                          "brent": float(v["brent_avg"]),
+                          "premium": float(v["premium"]),
+                          "volume_mt": float(v["volume_mt"]),
+                          "value_bn": float(v["value_bn_usd"]),
+                          "source": v["source"]}
+                 for k, v in o.iterrows()},
+        "mean_premium": round(float(o["premium"].mean()), 2),
+        "note": ("биржевых котировок Azeri Light за весь период нет; "
+                 "используются контрактные цены по декларациям ГТК АР"),
+    }
+
+
+def appendix_az_tables():
+    """Текстовые таблицы для приложения: исходные данные по Азербайджану."""
+    g = az_gas_frame()
+    inc = az_gas_increments(g)
+    lines = ["КОНТРАКТНЫЕ ЦЕНЫ АЗЕРБАЙДЖАНА (расчёт по декларациям ГТК АР)", ""]
+    lines.append("Газ, накопленные периоды:")
+    lines.append("  период    млрд куб. м   млрд долл.   долл./1000 м3  "
+                 "долл./MMBtu   Brent")
+    for period, r in g.iterrows():
+        lines.append(f"  {period}   {r['volume_bcm']:9.4f}   "
+                     f"{r['value_bn_usd']:8.4f}   {r['usd_per_1000m3']:11.1f}   "
+                     f"{r['usd_per_mmbtu']:10.2f}   {r['brent_avg']:6.2f}")
+    lines.append("")
+    lines.append("Газ, приростные (месячные) значения:")
+    lines.append("  период    долл./1000 м3  долл./MMBtu   Brent")
+    for period, r in inc.iterrows():
+        lines.append(f"  {period}   {r['usd_per_1000m3']:11.1f}   "
+                     f"{r['usd_per_mmbtu']:10.2f}   {r['brent']:6.2f}")
+    lines.append("")
+    m5 = model5()
+    lines.append("Нефть, накопленные периоды:")
+    lines.append("  период    млн т      млрд долл.   долл./т    долл./барр.  "
+                 "Brent    премия")
+    for period, r in m5["rows"].items():
+        lines.append(f"  {period}   {r['volume_mt']:8.3f}   {r['value_bn']:8.3f}"
+                     f"   {r['usd_t']:8.1f}   {r['usd_bbl']:9.2f}   "
+                     f"{r['brent']:7.2f}   {r['premium']:6.2f}")
+    lines.append("")
+    lines.append("Пересчёт: 1 тыс. куб. м = 35,11 млн БТЕ; 1 т = 7,33 барр.")
+    return "\n".join(lines)
+
+
 def main():
     df = load_pair()
+    g = az_gas_frame()
+    inc = az_gas_increments(g)
     res = {
         "n_months": int(len(df)),
         "period": f"{df.index[0]}–{df.index[-1]}",
@@ -256,13 +416,29 @@ def main():
         "M2": model2(df),
         "M2b": model2b(df),
         "M3": model3(df),
+        "M4": model4(g),
+        "M4b": model4b(inc),
+        "M5": model5(),
+        "az": {
+            "gas_cumulative": {str(k): {"volume_bcm": float(v["volume_bcm"]),
+                                        "value_bn": float(v["value_bn_usd"]),
+                                        "usd_1000m3": float(v["usd_per_1000m3"]),
+                                        "usd_mmbtu": float(v["usd_per_mmbtu"]),
+                                        "brent": float(v["brent_avg"]),
+                                        "source": v["source"]}
+                               for k, v in g.iterrows()},
+            "gas_increments": {str(k): {"usd_1000m3": float(v["usd_per_1000m3"]),
+                                        "usd_mmbtu": float(v["usd_per_mmbtu"]),
+                                        "brent": float(v["brent"])}
+                               for k, v in inc.iterrows()},
+        },
     }
     os.makedirs(OUT, exist_ok=True)
     with open(os.path.join(OUT, "econometrics.json"), "w",
               encoding="utf-8") as fh:
         json.dump(res, fh, ensure_ascii=False, indent=1)
 
-    for key in ("M1", "M2", "M2b", "M3"):
+    for key in ("M1", "M2", "M2b", "M3", "M4", "M4b"):
         m = res[key]
         print(f"\n{m['name']}")
         print(f"  n={m.get('n')}, R2={m.get('r2')}, "
@@ -276,6 +452,8 @@ def main():
     with open(os.path.join(OUT, "econometrics_dump.txt"), "w",
               encoding="utf-8") as fh:
         fh.write(text_dump())
+        fh.write("\n\n")
+        fh.write(appendix_az_tables())
     print("\nсохранено: out/econometrics.json, out/econometrics_dump.txt")
 
 

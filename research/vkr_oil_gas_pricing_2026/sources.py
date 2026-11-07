@@ -8,7 +8,78 @@ verify_numbers.py сверяет алфавитную монотонность.
 """
 
 SOURCES_RAW = [
+    dict(key="incoterms",
+         sort="Incoterms 2020",
+         gost="Incoterms 2020 : ICC rules for the use of domestic and "
+              "international trade terms. — Paris : International Chamber of "
+              "Commerce, 2019. — 228 p."),
+    dict(key="oil_prices_data",
+         sort="Oil prices Brent and WTI monthly series",
+         gost="Oil prices: Brent and WTI, monthly series, May 1987 — October "
+              "2026 : open dataset // GitHub. — URL: "
+              "https://github.com/datasets/oil-prices (дата обращения: "
+              "05.11.2026)."),
+    # ------------------------------- методические и справочные документы
+    dict(key="metod_vkr", group=3,
+         gost="Методические рекомендации по подготовке выпускной квалификационной "
+              "работы для студентов, обучающихся по направлению подготовки 38.03.01 "
+              "«Экономика» / Е. С. Соколова, Е. Б. Макарова, А. С. Федюнин, "
+              "С. А. Цвирко. — Москва : Финансовый университет, 2025. — 24 с."),
+
     # -------------------------------------------- нормативные правовые акты
+
+    # --------------------------- контрактное ценообразование и рынок СПГ
+    dict(key="konoplyanik",
+         sort="Конопляник",
+         gost="Конопляник, А. А. Эволюция международных газовых рынков: контрактные "
+              "структуры, механизмы ценообразования / А. А. Конопляник. — Москва : "
+              "Институт народнохозяйственного прогнозирования РАН, 2024. — 46 с."),
+    dict(key="stern_gas_book",
+         sort="Стерн Дж. The Pricing",
+         gost="The Pricing of Internationally Traded Gas / ed. by J. Stern. — "
+              "Oxford : Oxford University Press for the Oxford Institute for Energy "
+              "Studies, 2012. — Chapter 11: LNG Pricing in Asia. — P. 331–372."),
+    dict(key="oies_jcc",
+         sort="Challenges to JCC Pricing",
+         gost="Challenges to JCC Pricing in Asian LNG Markets / H. Rogers. — "
+              "Oxford : Oxford Institute for Energy Studies, 2014. — 40 p. — "
+              "(OIES Paper ; NG 81)."),
+    dict(key="rba_lng",
+         sort="Australia and the Global LNG",
+         gost="Australia and the Global LNG Market // Reserve Bank of Australia "
+              "Bulletin. — 2015. — March quarter. — P. 33–44."),
+    dict(key="wilmer_lng",
+         sort="Trends in LNG Supply Contracts",
+         gost="Trends in LNG Supply Contracts and Pricing Disputes in the Asia Pacific "
+              "Region / Wilmer Cutler Pickering Hale and Dorr. — London, 2020. — 24 p."),
+
+    # ------------------------------ статистика Азербайджана (таможенные данные)
+    dict(key="az_customs_9m",
+         sort="Азербайджан за 9 месяцев экспортировал",
+         gost="Азербайджан за 9 месяцев экспортировал около 18 млрд кубометров "
+              "природного газа // Report. — 2026. — 19 октября. — URL: "
+              "https://report.az/ru/energetika/ (дата обращения: 06.11.2026)."),
+    dict(key="az_oil_export_8m",
+         sort="Азербайджан экспортировал нефть",
+         gost="Азербайджан в январе — августе 2026 года экспортировал 14,678 млн т "
+              "нефти на 9,282 млрд долларов // Trend. — 2026. — 13 октября. — URL: "
+              "https://ru.trend.az/azerbaijan/4234316.html (дата обращения: 06.11.2026)."),
+    dict(key="az_gas_price_customs",
+         sort="По какой цене Азербайджан",
+         gost="По какой цене Азербайджан экспортирует природный газ? // Caspian "
+              "Barrel. — 2024. — 18 марта. — URL: "
+              "https://caspianbarrel.org/ru/2024/03/ (дата обращения: 06.11.2026)."),
+    dict(key="imf_az_gas",
+         sort="МВФ: Средняя цена азербайджанского газа",
+         gost="МВФ: средняя цена азербайджанского газа в 2026 году достигнет "
+              "522 долларов // АПА-Экономикс. — 2026. — 11 мая. — URL: "
+              "https://ru.apa.az/finance/ (дата обращения: 06.11.2026)."),
+    dict(key="ceer_gas",
+         sort="Ценообразование",
+         gost="Ценообразование на европейском газовом рынке: долгосрочные контракты "
+              "и принцип «бери или плати» // Neftegaz.RU. — 2025. — URL: "
+              "https://neftegaz.ru/tech-library/ (дата обращения: 06.11.2026)."),
+
     dict(key="nk_rf", group=0,
          gost="Налоговый кодекс Российской Федерации (часть вторая) : федеральный закон "
               "от 05.08.2000 № 117-ФЗ (ред. от 2026 г.) // Собрание законодательства "
