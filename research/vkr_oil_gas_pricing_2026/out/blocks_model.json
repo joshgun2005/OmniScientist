@@ -1,29 +1,45 @@
 {
  "cited": [
-  "ukaz_961",
-  "az_oil_9m",
+  "az_h1_2025",
   "price_cap",
   "minec_urals",
   "minfin_2026",
   "az_light_2026",
+  "urals_jan_2026",
+  "angrist",
+  "bertrand",
   "chow_1960",
   "mckinney_2010",
   "newey_west",
   "oil_prices_data",
-  "seabold_2010",
-  "white_1980",
-  "zeileis_2003"
+  "seabold_2010"
  ],
  "footnotes": [
-  "О среднем уровне цен нефти сорта «Юралс» за январь — октябрь 2026 года : информация Минэкономразвития России // Министерство экономического развития Российской Федерации. — URL: https://economy.gov.ru/material/directions/makroec/uroven_cen_nefti_yurals/ (дата обращения: 05.11.2026).",
-  "Цена на Azeri Light резко превысила бюджетный прогноз — статистика по месяцам // ABC.AZ. — 2026. — 18 августа. — URL: https://abc.az/ru/news/212086/cena-na-azeri-light-rezko-prevysila-byudzetnyi-prognoz-statistika-po-mesyacam (дата обращения: 05.11.2026).; Гостаможня: Азербайджан экспортировал меньше нефти, но получил больше выручки // Vesti.az. — 2026. — 19 октября. — URL: https://vesti.az/ekonomika/gostamoznya-azerbaidzan-eksportiroval-mense-nefti-no-polucil-bolse-vyrucki-621624 (дата обращения: 05.11.2026).",
+  "Angrist, J. D. Mostly Harmless Econometrics: An Empiricist’s Companion / J. D. Angrist, J.-S. Pischke. — Princeton : Princeton University Press, 2009. — 392 p. — ISBN 978-0-691-12035-5.; Bertrand, M. How Much Should We Trust Differences-in-Differences Estimates? / M. Bertrand, E. Duflo, S. Mullainathan // The Quarterly Journal of Economics. — 2004. — Vol. 119, no. 1. — P. 249–275. — DOI 10.1162/003355304772839588.",
+  "О среднем уровне цен нефти сорта «Юралс» за январь — октябрь 2026 года : информация Минэкономразвития России // Министерство экономического развития Российской Федерации. — URL: https://economy.gov.ru/material/directions/makroec/uroven_cen_nefti_yurals/ (дата обращения: 05.11.2026).; Цена нефти Urals в январе упала на 39,5 %, но выросла на 4,5 % с декабря // InvestFuture. — 2026. — 4 февраля. — URL: https://investfuture.ru/articles/tsena-nefti-urals-v-yanvare-upala-na-39-5-no-vyrosla-na-4-5-s-dekabrya-1174289472 (дата обращения: 07.11.2026).",
+  "Азербайджанская нефть в I полугодии продавалась на 5,4 % дороже бюджетной цены // Report. — 2025. — 19 августа. — URL: https://report.az/ru/finansy/azerbajdzhanskaya-neft-v-i-polugodii-prodavalas-na-5-4-dorozhe-byudzhetnoj-ceny/ (дата обращения: 07.11.2026).; Цена на Azeri Light резко превысила бюджетный прогноз — статистика по месяцам // ABC.AZ. — 2026. — 18 августа. — URL: https://abc.az/ru/news/212086/cena-na-azeri-light-rezko-prevysila-byudzetnyi-prognoz-statistika-po-mesyacam (дата обращения: 05.11.2026).",
   "Oil prices: Brent and WTI, monthly series, May 1987 — October 2026 : open dataset // GitHub. — URL: https://github.com/datasets/oil-prices (дата обращения: 08.11.2026).",
-  "О применении специальных экономических мер в топливно-энергетической сфере в связи с установлением некоторыми иностранными государствами предельной цены на российские нефть и нефтепродукты : указ Президента Российской Федерации от 27.12.2022 № 961 (с изм. и доп.) // Официальный интернет-портал правовой информации. — URL: http://publication.pravo.gov.ru/Document/View/0001202212270015 (дата обращения: 03.11.2026).; Евросоюз с 1 февраля снизит потолок цен на нефть из России до $44,1 за баррель // РИА Новости. — 2026. — 15 января. — URL: https://ria.ru/20260115/evrosojuz-2067992362.html (дата обращения: 05.11.2026).",
-  "Newey, W. K. A Simple, Positive Semi-Definite, Heteroskedasticity and Autocorrelation Consistent Covariance Matrix / W. K. Newey, K. D. West // Econometrica. — 1987. — Vol. 55, no. 3. — P. 703–708. — DOI 10.2307/1913610.; White, H. A Heteroskedasticity-Consistent Covariance Matrix Estimator and a Direct Test for Heteroskedasticity / H. White // Econometrica. — 1980. — Vol. 48, no. 4. — P. 817–838. — DOI 10.2307/1912934.",
-  "Chow, G. C. Tests of Equality Between Sets of Coefficients in Two Linear Regressions / G. C. Chow // Econometrica. — 1960. — Vol. 28, no. 3. — P. 591–605. — DOI 10.2307/1910133.; Zeileis, A. Testing and Dating of Structural Changes in Practice / A. Zeileis, C. Kleiber, W. Krämer, K. Hornik // Computational Statistics & Data Analysis. — 2003. — Vol. 44, no. 1–2. — P. 109–123. — DOI 10.1016/S0167-9473(03)00030-6.",
-  "О среднем уровне цен нефти сорта «Юралс»",
+  "Евросоюз с 1 февраля снизит потолок цен на нефть из России до $44,1 за баррель // РИА Новости. — 2026. — 15 января. — URL: https://ria.ru/20260115/evrosojuz-2067992362.html (дата обращения: 05.11.2026).",
+  "Newey, W. K. A Simple, Positive Semi-Definite, Heteroskedasticity and Autocorrelation Consistent Covariance Matrix / W. K. Newey, K. D. West // Econometrica. — 1987. — Vol. 55, no. 3. — P. 703–708. — DOI 10.2307/1913610.",
+  "Chow, G. C. Tests of Equality Between Sets of Coefficients in Two Linear Regressions / G. C. Chow // Econometrica. — 1960. — Vol. 28, no. 3. — P. 591–605. — DOI 10.2307/1910133.",
+  "О среднем уровне цен нефти сорта «Юралс» за январь — октябрь 2026 года : информация Минэкономразвития России // Министерство экономического развития Российской Федерации. — URL: https://economy.gov.ru/material/directions/makroec/uroven_cen_nefti_yurals/ (дата обращения: 05.11.2026).",
   "Предварительные итоги исполнения федерального бюджета за январь — сентябрь 2026 года / Министерство финансов Российской Федерации. — Москва, 2026. — URL: https://minfin.gov.ru/ru/statistics/fedbud/execute/ (дата обращения: 05.11.2026).",
   "McKinney, W. Data Structures for Statistical Computing in Python / W. McKinney // Proceedings of the 9th Python in Science Conference. — Austin, 2010. — P. 56–61. — DOI 10.25080/Majora-92bf1922-00a.",
   "Seabold, S. Statsmodels: Econometric and Statistical Modeling with Python / S. Seabold, J. Perktold // Proceedings of the 9th Python in Science Conference. — Austin, 2010. — P. 92–96. — DOI 10.25080/Majora-92bf1922-011."
- ]
+ ],
+ "footnoted": {
+  "angrist": "Angrist, J. D. Mostly Harmless Econometrics: An Empiricist’s Companion / J. D. Angrist, J.-S. Pischke. — Princeton : Princeton University Press, 2009. — 392 p. — ISBN 978-0-691-12035-5.; Bertrand, M. How Much Should We Trust Differences-in-Differences Estimates? / M. Bertrand, E. Duflo, S. Mullainathan // The Quarterly Journal of Economics. — 2004. — Vol. 119, no. 1. — P. 249–275. — DOI 10.1162/003355304772839588.",
+  "bertrand": "Angrist, J. D. Mostly Harmless Econometrics: An Empiricist’s Companion / J. D. Angrist, J.-S. Pischke. — Princeton : Princeton University Press, 2009. — 392 p. — ISBN 978-0-691-12035-5.; Bertrand, M. How Much Should We Trust Differences-in-Differences Estimates? / M. Bertrand, E. Duflo, S. Mullainathan // The Quarterly Journal of Economics. — 2004. — Vol. 119, no. 1. — P. 249–275. — DOI 10.1162/003355304772839588.",
+  "minec_urals": "О среднем уровне цен нефти сорта «Юралс» за январь — октябрь 2026 года : информация Минэкономразвития России // Министерство экономического развития Российской Федерации. — URL: https://economy.gov.ru/material/directions/makroec/uroven_cen_nefti_yurals/ (дата обращения: 05.11.2026).",
+  "urals_jan_2026": "О среднем уровне цен нефти сорта «Юралс» за январь — октябрь 2026 года : информация Минэкономразвития России // Министерство экономического развития Российской Федерации. — URL: https://economy.gov.ru/material/directions/makroec/uroven_cen_nefti_yurals/ (дата обращения: 05.11.2026).; Цена нефти Urals в январе упала на 39,5 %, но выросла на 4,5 % с декабря // InvestFuture. — 2026. — 4 февраля. — URL: https://investfuture.ru/articles/tsena-nefti-urals-v-yanvare-upala-na-39-5-no-vyrosla-na-4-5-s-dekabrya-1174289472 (дата обращения: 07.11.2026).",
+  "az_h1_2025": "Азербайджанская нефть в I полугодии продавалась на 5,4 % дороже бюджетной цены // Report. — 2025. — 19 августа. — URL: https://report.az/ru/finansy/azerbajdzhanskaya-neft-v-i-polugodii-prodavalas-na-5-4-dorozhe-byudzhetnoj-ceny/ (дата обращения: 07.11.2026).; Цена на Azeri Light резко превысила бюджетный прогноз — статистика по месяцам // ABC.AZ. — 2026. — 18 августа. — URL: https://abc.az/ru/news/212086/cena-na-azeri-light-rezko-prevysila-byudzetnyi-prognoz-statistika-po-mesyacam (дата обращения: 05.11.2026).",
+  "az_light_2026": "Азербайджанская нефть в I полугодии продавалась на 5,4 % дороже бюджетной цены // Report. — 2025. — 19 августа. — URL: https://report.az/ru/finansy/azerbajdzhanskaya-neft-v-i-polugodii-prodavalas-na-5-4-dorozhe-byudzhetnoj-ceny/ (дата обращения: 07.11.2026).; Цена на Azeri Light резко превысила бюджетный прогноз — статистика по месяцам // ABC.AZ. — 2026. — 18 августа. — URL: https://abc.az/ru/news/212086/cena-na-azeri-light-rezko-prevysila-byudzetnyi-prognoz-statistika-po-mesyacam (дата обращения: 05.11.2026).",
+  "oil_prices_data": "Oil prices: Brent and WTI, monthly series, May 1987 — October 2026 : open dataset // GitHub. — URL: https://github.com/datasets/oil-prices (дата обращения: 08.11.2026).",
+  "price_cap": "Евросоюз с 1 февраля снизит потолок цен на нефть из России до $44,1 за баррель // РИА Новости. — 2026. — 15 января. — URL: https://ria.ru/20260115/evrosojuz-2067992362.html (дата обращения: 05.11.2026).",
+  "newey_west": "Newey, W. K. A Simple, Positive Semi-Definite, Heteroskedasticity and Autocorrelation Consistent Covariance Matrix / W. K. Newey, K. D. West // Econometrica. — 1987. — Vol. 55, no. 3. — P. 703–708. — DOI 10.2307/1913610.",
+  "chow_1960": "Chow, G. C. Tests of Equality Between Sets of Coefficients in Two Linear Regressions / G. C. Chow // Econometrica. — 1960. — Vol. 28, no. 3. — P. 591–605. — DOI 10.2307/1910133.",
+  "minfin_2026": "Предварительные итоги исполнения федерального бюджета за январь — сентябрь 2026 года / Министерство финансов Российской Федерации. — Москва, 2026. — URL: https://minfin.gov.ru/ru/statistics/fedbud/execute/ (дата обращения: 05.11.2026).",
+  "mckinney_2010": "McKinney, W. Data Structures for Statistical Computing in Python / W. McKinney // Proceedings of the 9th Python in Science Conference. — Austin, 2010. — P. 56–61. — DOI 10.25080/Majora-92bf1922-00a.",
+  "seabold_2010": "Seabold, S. Statsmodels: Econometric and Statistical Modeling with Python / S. Seabold, J. Perktold // Proceedings of the 9th Python in Science Conference. — Austin, 2010. — P. 92–96. — DOI 10.25080/Majora-92bf1922-011."
+ }
 }

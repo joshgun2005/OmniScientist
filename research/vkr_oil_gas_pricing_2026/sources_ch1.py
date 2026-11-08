@@ -283,6 +283,40 @@ REGISTRY = {
              "Conference. — Austin, 2010. — P. 56–61. — "
              "DOI 10.25080/Majora-92bf1922-00a.",
     ),
+    # ------ данные модели: помесячные цены (документ 2)
+    "az_h1_2025": dict(
+        sort="3-22 азербайджан нефть полугодие 2025",
+        short="Азербайджанская нефть в I полугодии продавалась на 5,4 % дороже",
+        gost="Азербайджанская нефть в I полугодии продавалась на 5,4 % дороже "
+             "бюджетной цены // Report. — 2025. — 19 августа. — URL: "
+             "https://report.az/ru/finansy/azerbajdzhanskaya-neft-v-i-polugodii-"
+             "prodavalas-na-5-4-dorozhe-byudzhetnoj-ceny/ (дата обращения: "
+             "07.11.2026).",
+    ),
+    "urals_jan_2026": dict(
+        sort="3-23 urals январь 2026",
+        short="Цена нефти Urals в январе 2026 года",
+        gost="Цена нефти Urals в январе упала на 39,5 %, но выросла на 4,5 % с "
+             "декабря // InvestFuture. — 2026. — 4 февраля. — URL: "
+             "https://investfuture.ru/articles/tsena-nefti-urals-v-yanvare-upala-na-"
+             "39-5-no-vyrosla-na-4-5-s-dekabrya-1174289472 (дата обращения: "
+             "07.11.2026).",
+    ),
+    "angrist": dict(
+        sort="2-20 angrist pischke",
+        short="Angrist J. D., Pischke J.-S. Mostly Harmless Econometrics",
+        gost="Angrist, J. D. Mostly Harmless Econometrics: An Empiricist’s "
+             "Companion / J. D. Angrist, J.-S. Pischke. — Princeton : Princeton "
+             "University Press, 2009. — 392 p. — ISBN 978-0-691-12035-5.",
+    ),
+    "bertrand": dict(
+        sort="2-21 bertrand duflo",
+        short="Bertrand M., Duflo E., Mullainathan S. Op. cit.",
+        gost="Bertrand, M. How Much Should We Trust Differences-in-Differences "
+             "Estimates? / M. Bertrand, E. Duflo, S. Mullainathan // The Quarterly "
+             "Journal of Economics. — 2004. — Vol. 119, no. 1. — P. 249–275. — "
+             "DOI 10.1162/003355304772839588.",
+    ),
     "oil_prices_data": dict(
         sort="3-11 oil prices brent",
         short="Oil prices: Brent and WTI. Op. cit.",

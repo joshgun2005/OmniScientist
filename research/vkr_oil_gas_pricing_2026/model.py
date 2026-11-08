@@ -1,13 +1,22 @@
 # -*- coding: utf-8 -*-
-"""Единственная эконометрическая модель ВКР.
+"""Единственная эконометрическая модель ВКР — модель «до и после» (DiD).
 
-Спецификация (дифференциал фактической экспортной цены к Brent):
+Идея в одной фразе: сравниваем, как изменился разрыв между ценой российской
+и азербайджанской нефти после 1 января 2026 г. — то есть после очередного
+снижения потолка цен.
 
-    D_it = a + b·Brent_t + g·RUS_i + d·1[t >= 2025-11] + q·(1[t >= 2025-11]·RUS_i) + u_it,
-    D_it = P_it - Brent_t.
+Уравнение (простая линейная регрессия по 24 наблюдениям «страна — месяц»):
 
-Все числа, попадающие в документы, считаются здесь и сохраняются в
-out/model.json; в тексте «ручных» коэффициентов нет.
+    D = a + b · Brent + c · RUS + e · Y26 + k · (RUS · Y26) + u,
+
+    D     = P − Brent  — дифференциал фактической цены экспорта, долл./барр.;
+    RUS   = 1 для России, 0 для Азербайджана;
+    Y26   = 1 для месяцев 2026 г., 0 для 2025 г.;
+    RUS·Y26 — искомая величина: дополнительное расширение российского
+              дифференциала после смены режима (коэффициент k).
+
+Всё считается здесь: out/model.json — единственный источник чисел для
+документа, поэтому в тексте нет «ручных» значений.
 
 Запуск: python3 model.py
 """
@@ -18,421 +27,268 @@ import numpy as np
 import pandas as pd
 import statsmodels.api as sm
 import statsmodels.formula.api as smf
+from scipy import stats
 from statsmodels.stats.diagnostic import (
     acorr_breusch_godfrey, het_breuschpagan, linear_reset)
-from statsmodels.stats.outliers_influence import variance_inflation_factor
 from statsmodels.stats.stattools import durbin_watson, jarque_bera
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(BASE, "out")
-BBL_PER_T = 7.33          # барр./т (нетбэк-пересчёт, формула (16) главы 1)
-SPLIT = "2025-11"         # дата институционального сдвига
-FORMULA = "D ~ Brent + RUS + d + RUS:d"
-FORMULA_NB = "D ~ Brent + RUS + d + RUS:d"   # та же модель для проверок
+DATA = os.path.join(BASE, "data", "panel_prices.csv")
+
+BBL_PER_T = 7.33          # барр. в тонне (формула (16) главы 1)
+SPLIT = "2026-01"         # начало действия потолка 44,1 долл./барр.
+FORMULA = "D ~ brent + RUS + Y26 + RUSY"
 
 
-def load_metrics():
-    """Показатели из out/metrics.json (реестр исходных данных)."""
-    path = os.path.join(OUT, "metrics.json")
-    if not os.path.exists(path):
-        raise SystemExit("сначала выполните python3 analysis.py")
-    with open(path, encoding="utf-8") as fh:
-        m = json.load(fh)
-    return m["inputs"], m["derived"]
-
-
-# ------------------------------------------------------------------ данные
+# --------------------------------------------------------------------- данные
 def load():
-    df = pd.read_csv(os.path.join(BASE, "data", "panel_prices.csv"))
-    df = df.rename(columns={"brent": "Brent"})
-    df["D"] = df["price"] - df["Brent"]
+    df = pd.read_csv(DATA)
+    df["D"] = df["price"] - df["brent"]
     df["RUS"] = (df["country"] == "RUS").astype(int)
-    df["d"] = (df["month"] >= SPLIT).astype(int)
+    df["Y26"] = df["d_phase"].astype(int)
+    df["RUSY"] = df["RUS"] * df["Y26"]
     df["month"] = df["month"].astype(str)
-    df["src"] = df["country"].map({"RUS": "minec_urals", "AZE": "az_light_2026"})
-    df["split_note"] = SPLIT
     return df.sort_values(["month", "country"]).reset_index(drop=True)
 
 
-def fit(df, formula=FORMULA):
-    """Обычный МНК + ковариационная матрица HAC (Newey-West, 2 лага)."""
-    ols = smf.ols(formula, data=df).fit()
-    hac = smf.ols(formula, data=df).fit(cov_type="HAC",
-                                        cov_kwds={"maxlags": 2})
-    return ols, hac
+# ----------------------------------------------------------------- оценивание
+def cluster_se(ols, df, group="month"):
+    """Ошибки, сгруппированные по месяцу: в каждом месяце две страны."""
+    X = ols.model.exog
+    u = ols.resid.values
+    bread = np.linalg.pinv(X.T @ X)
+    meat = np.zeros((X.shape[1], X.shape[1]))
+    for _, idx in df.groupby(group).indices.items():
+        Xg, ug = X[idx], u[idx]
+        s = Xg.T @ ug
+        meat += np.outer(s, s)
+    n, k = X.shape
+    g = df[group].nunique()
+    factor = g / (g - 1) * (n - 1) / (n - k)
+    V = factor * bread @ meat @ bread
+    se = np.sqrt(np.diag(V))
+    t = ols.params.values / se
+    p = 2 * (1 - stats.t.cdf(np.abs(t), g - 1))
+    return se, t, p, V
 
 
-def spec_table(ols, hac):
-    """Таблица коэффициентов: обычные и HAC-ошибки, доверительные интервалы."""
-    rows = []
-    ci = hac.conf_int()
-    for name in ols.params.index:
-        rows.append({
-            "var": name,
-            "coef": float(ols.params[name]),
-            "se": float(ols.bse[name]),
-            "t": float(ols.tvalues[name]),
-            "p": float(ols.pvalues[name]),
-            "hac_se": float(hac.bse[name]),
-            "hac_t": float(hac.tvalues[name]),
-            "hac_p": float(hac.pvalues[name]),
-            "ci_lo": float(ci.loc[name, 0]),
-            "ci_hi": float(ci.loc[name, 1]),
-        })
-    return rows
+def rows_table(ols, se, t, p, ci):
+    out = []
+    for i, name in enumerate(ols.params.index):
+        out.append({"var": name,
+                    "coef": float(ols.params[name]),
+                    "se": float(ols.bse[name]),
+                    "t": float(ols.tvalues[name]),
+                    "p": float(ols.pvalues[name]),
+                    "cl_se": float(se[i]),
+                    "cl_t": float(t[i]),
+                    "cl_p": float(p[i]),
+                    "ci_lo": float(ci[i][0]),
+                    "ci_hi": float(ci[i][1])})
+    return out
 
 
-def diagnostics(ols, df):
+def diagnostics(ols):
     resid = ols.resid
-    exog = ols.model.exog
-    bp = het_breuschpagan(resid, exog)
-    bg = acorr_breusch_godfrey(ols, nlags=2)
+    bp = het_breuschpagan(resid, ols.model.exog)
+    bg = acorr_breusch_godfrey(ols, nlags=1)
     jb = jarque_bera(resid)
     reset = linear_reset(ols, power=2, use_f=True)
-    bg2 = acorr_breusch_godfrey(ols, nlags=1)
-    vif = {}
-    names = list(ols.params.index)
-    for i, nm in enumerate(names):
-        if nm == "Intercept":
-            continue
-        vif[nm] = float(variance_inflation_factor(exog, i))
-    return {
-        "bp_lm": float(bp[0]), "bp_p": float(bp[1]),
-        "bg_lm": float(bg[0]), "bg_p": float(bg[1]),
-        "bg1_lm": float(bg2[0]), "bg1_p": float(bg2[1]),
-        "jb": float(jb[0]), "jb_p": float(jb[1]),
-        "reset_f": float(reset.statistic), "reset_p": float(reset.pvalue),
-        "dw": float(durbin_watson(resid)),
-        "vif": {k: round(v, 2) for k, v in vif.items()},
-        "vif_max": round(max(vif.values()), 2),
-        "skew": float(pd.Series(resid).skew()),
-        "kurt": float(pd.Series(resid).kurtosis() + 3),
-    }
+    return {"bp_lm": float(bp[0]), "bp_p": float(bp[1]),
+            "bg_lm": float(bg[0]), "bg_p": float(bg[1]),
+            "jb": float(jb[0]), "jb_p": float(jb[1]),
+            "skew": float(pd.Series(resid).skew()),
+            "kurt": float(pd.Series(resid).kurtosis() + 3),
+            "reset_f": float(reset.statistic), "reset_p": float(reset.pvalue),
+            "dw": float(durbin_watson(resid))}
 
 
-def chow(df):
-    """Тест Чоу на структурный сдвиг в дату SPLIT.
+def chow_test(df):
+    """Тест Чоу: одна регрессия на весь период против двух по подпериодам.
 
-    Классическая форма: сравниваются остатки единой регрессии по всей выборке
-    и двух регрессий по подвыборкам «до» и «после» (все коэффициенты свободны).
-    Дополнительно считается частная форма: совместная значимость фиктивных
-    переменных сдвига при неизменном наклоне по Brent — именно она
-    соответствует уравнению (1).
+    Внутри каждой страны оценивается зависимость P от Brent; проверяется
+    равенство коэффициентов до 2026 г. и с 2026 г.
     """
-    from scipy import stats
-
-    pool = smf.ols("D ~ Brent + RUS", data=df).fit()
-    pre, post = df[df.d == 0], df[df.d == 1]
-    a = smf.ols("D ~ Brent + RUS", data=pre).fit()
-    b = smf.ols("D ~ Brent + RUS", data=post).fit()
-    q = len(pool.params)
-    n = int(pool.nobs)
-    su = a.ssr + b.ssr
-    f = ((pool.ssr - su) / q) / (su / (n - 2 * q))
-
-    # отдельная регрессия по России: проверка сдвига внутри одной страны
-    rus = df[df.RUS == 1]
-    r0 = smf.ols("D ~ Brent", data=rus[rus.d == 0]).fit()
-    r1 = smf.ols("D ~ Brent", data=rus[rus.d == 1]).fit()
-    rp = smf.ols("D ~ Brent", data=rus).fit()
-    q_rus = len(rp.params)
-    n_rus = int(rp.nobs)
-    su_rus = r0.ssr + r1.ssr
-    f_rus = ((rp.ssr - su_rus) / q_rus) / (su_rus / (n_rus - 2 * q_rus))
-
-    unrestr = smf.ols(FORMULA, data=df).fit()
-    k = len(unrestr.params)
-    f_shift = ((pool.ssr - unrestr.ssr) / 2) / (unrestr.ssr / (n - k))
-    return {"F": float(f), "p": float(stats.f.sf(f, q, n - 2 * q)),
-            "df1": q, "df2": n - 2 * q,
-            "F_shift": float(f_shift),
-            "p_shift": float(stats.f.sf(f_shift, 2, n - k)),
-            "df1_shift": 2, "df2_shift": n - k,
-            "F_rus": float(f_rus),
-            "p_rus": float(stats.f.sf(f_rus, q_rus, n_rus - 2 * q_rus)),
-            "df1_rus": q_rus, "df2_rus": n_rus - 2 * q_rus,
-            "n_rus": n_rus}
+    res = {}
+    pre, post = df[df.Y26 == 0], df[df.Y26 == 1]
+    for code, name in (("RUS", "rus"), ("AZE", "aze")):
+        a, b = pre[pre.country == code], post[post.country == code]
+        pooled = sm.OLS(df[df.country == code].price,
+                        sm.add_constant(df[df.country == code][["brent"]])).fit()
+        m1 = sm.OLS(a.price, sm.add_constant(a[["brent"]])).fit()
+        m2 = sm.OLS(b.price, sm.add_constant(b[["brent"]])).fit()
+        q = 2
+        n = int(pooled.nobs)
+        f = ((pooled.ssr - (m1.ssr + m2.ssr)) / q) / ((m1.ssr + m2.ssr) /
+                                                      (n - 2 * q))
+        res[name] = {"F": float(f), "p": float(stats.f.sf(f, q, n - 2 * q)),
+                     "df1": q, "df2": n - 2 * q, "n": n,
+                     "n_pre": int(m1.nobs), "n_post": int(m2.nobs)}
+    return res
 
 
-def linear_combo(ols, weights):
-    """Линейная комбинация коэффициентов: оценка, se, t, p, интервал."""
-    b = ols.params
-    V = ols.cov_params()
-    est = sum(weights.get(k, 0.0) * b[k] for k in b.index)
-    var = 0.0
-    for i in b.index:
-        for j in b.index:
-            var += weights.get(i, 0.0) * weights.get(j, 0.0) * V.loc[i, j]
-    se = float(np.sqrt(var))
-    from scipy import stats
-    t = est / se
-    p = 2 * (1 - stats.t.cdf(abs(t), ols.df_resid))
-    crit = stats.t.ppf(0.975, ols.df_resid)
-    return {"est": float(est), "se": se, "t": float(t), "p": float(p),
-            "lo": float(est - crit * se), "hi": float(est + crit * se)}
-
-
-def date_search(df, dates):
-    """Поиск даты сдвига: перебор месяцев, выбор по максимуму adj. R2 и AIC."""
+def date_check(df):
+    """Проверка даты сдвига: оценка k при разных границах года."""
     out = []
-    for dt in dates:
-        sub = df.copy()
-        sub["dd"] = (sub["month"] >= dt).astype(int)
-        m = smf.ols("D ~ Brent + RUS + dd + RUS:dd", data=sub).fit()
-        h = smf.ols("D ~ Brent + RUS + dd + RUS:dd", data=sub).fit(
-            cov_type="HAC", cov_kwds={"maxlags": 2})
-        out.append({"date": dt,
-                    "coef": float(h.params["RUS:dd"]),
-                    "se": float(h.bse["RUS:dd"]),
-                    "p": float(h.pvalues["RUS:dd"]),
+    for split in ("2025-12", "2026-01", "2026-02", "2026-03"):
+        d = df.copy()
+        d["Y26"] = (d.month >= split).astype(int)
+        d["RUSY"] = d.RUS * d.Y26
+        m = smf.ols(FORMULA, data=d).fit()
+        out.append({"split": split, "k": float(m.params["RUSY"]),
+                    "p": float(m.pvalues["RUSY"]),
                     "r2_adj": float(m.rsquared_adj),
                     "aic": float(m.aic)})
-    return out
-
-
-def spec_compare(df):
-    """Сравнение спецификаций-кандидатов: R2, AIC/BIC, устойчивость сдвига."""
-    cands = [("S1", "D ~ Brent + RUS + d", "общий сдвиг без страновой асимметрии"),
-             ("S2", FORMULA, "страновой сдвиг (базовая)"),
-             ("S3", "D ~ Brent + RUS + d + RUS:d + Brent:RUS",
-              "добавлен наклон Brent для России"),
-             ("S4", "D ~ Brent + RUS + d + RUS:d + Brent:d",
-              "наклон Brent меняется после сдвига"),
-             ("S5", "D ~ Brent + RUS + d + RUS:d + Brent:RUS + Brent:d",
-              "оба дополнительных наклона")]
-    out = []
-    for code, formula, note in cands:
-        m = smf.ols(formula, data=df).fit()
-        h = smf.ols(formula, data=df).fit(cov_type="HAC",
-                                          cov_kwds={"maxlags": 2})
-        key = "RUS:d"
-        out.append({"code": code, "formula": formula, "note": note,
-                    "k": int(len(m.params)),
-                    "r2_adj": float(m.rsquared_adj), "aic": float(m.aic),
-                    "bic": float(m.bic),
-                    "gap": float(m.params[key]) if key in m.params else None,
-                    "gap_p": float(h.pvalues[key]) if key in m.params else None})
-    return out
-
-
-def accuracy(df, ols):
-    """Точность: ошибки по дифференциалу и по цене, вклад Brent (F-тест)."""
-    resid = ols.resid.to_numpy()
-    d = df["D"].to_numpy()
-    price = df["price"].to_numpy()
-    pred_price = df["Brent"].to_numpy() + ols.fittedvalues.to_numpy()
-    mape = float(np.mean(np.abs(resid) / np.abs(d)) * 100)
-    mape_p = float(np.mean(np.abs(pred_price - price) / price) * 100)
-    # вклад Brent: сравнение с моделью только из фиктивных переменных
-    restr = smf.ols("D ~ RUS + d + RUS:d", data=df).fit()
-    q = 1
-    k = len(ols.params)
-    n = int(ols.nobs)
-    f = ((restr.ssr - ols.ssr) / q) / (ols.ssr / (n - k))
-    from scipy import stats
-    return {"rmse_D": float(np.sqrt(np.mean(resid ** 2))),
-            "mae_D": float(np.mean(np.abs(resid))),
-            "mape_D": mape,
-            "rmse_P": float(np.sqrt(np.mean((pred_price - price) ** 2))),
-            "mape_P": mape_p,
-            "max_abs_D": float(np.max(np.abs(resid))),
-            "f_brent": float(f),
-            "f_brent_p": float(1 - stats.f.cdf(f, q, n - k)),
-            "r2_restr": float(restr.rsquared)}
-
-
-def describe(df):
-    out = {}
-    for key, sub in (("all", df),
-                     ("RUS", df[df.country == "RUS"]),
-                     ("AZE", df[df.country == "AZE"]),
-                     ("RUS_before", df[(df.country == "RUS") & (df.d == 0)]),
-                     ("RUS_after", df[(df.country == "RUS") & (df.d == 1)]),
-                     ("AZE_before", df[(df.country == "AZE") & (df.d == 0)]),
-                     ("AZE_after", df[(df.country == "AZE") & (df.d == 1)])):
-        out[key] = {"n": int(len(sub)),
-                    "D_mean": float(sub.D.mean()),
-                    "D_sd": float(sub.D.std(ddof=1)) if len(sub) > 1 else 0.0,
-                    "D_min": float(sub.D.min()),
-                    "D_max": float(sub.D.max()),
-                    "P_mean": float(sub.price.mean()),
-                    "Brent_mean": float(sub.Brent.mean())}
-    out["brent"] = {"mean": float(df.Brent.mean()),
-                    "sd": float(df.Brent.std(ddof=1)),
-                    "min": float(df.Brent.min()),
-                    "max": float(df.Brent.max())}
-    out["D"] = {"mean": float(df.D.mean()), "sd": float(df.D.std(ddof=1)),
-                "min": float(df.D.min()), "max": float(df.D.max())}
     return out
 
 
 def main():
     os.makedirs(OUT, exist_ok=True)
     df = load()
-    ols, hac = fit(df)
+    ols = smf.ols(FORMULA, data=df).fit()
+    se, t, p, V = cluster_se(ols, df)
+    coefs = ols.params.values
+    ci = np.array([[coefs[i] - 1.96 * se[i], coefs[i] + 1.96 * se[i]]
+                   for i in range(len(se))])
+    names = list(ols.params.index)
+    rows = rows_table(ols, se, t, p, ci)
+    get = {r["var"]: r for r in rows}
+
+    # --- устойчивость: без января 2026 г. и без «плоских» месяцев 2025 г.
     rob = {}
 
-    # 1) без наблюдения-выброса 2026-01 (сдвиг цены Azeri Light)
-    sub = df[df.month != "2026-01"]
-    o2, h2 = fit(sub)
-    rob["no_outlier"] = {"n": int(o2.nobs), "r2_adj": float(o2.rsquared_adj),
-                         "sigma": float(np.sqrt(o2.mse_resid)),
-                         "rows": spec_table(o2, h2),
-                         "diag": diagnostics(o2, sub)}
+    def check(key, sub, formula=FORMULA, label=""):
+        m = smf.ols(formula, data=sub).fit()
+        s2, _, p2, _ = cluster_se(m, sub)
+        i = list(m.params.index).index("RUSY")
+        rob[key] = {"n": int(m.nobs), "k": float(m.params["RUSY"]),
+                    "cl_se": float(s2[i]), "cl_p": float(p2[i]),
+                    "r2_adj": float(m.rsquared_adj), "label": label}
 
-    # 2) сбалансированная панель (только месяцы, где есть обе страны)
-    months = set(df[df.country == "AZE"].month)
-    bal = df[df.month.isin(months)]
-    o3, h3 = fit(bal)
-    rob["balanced"] = {"n": int(o3.nobs), "months": int(bal.month.nunique()),
-                       "r2_adj": float(o3.rsquared_adj),
-                       "sigma": float(np.sqrt(o3.mse_resid)),
-                       "rows": spec_table(o3, h3),
-                       "diag": diagnostics(o3, bal)}
+    check("no_jan", df[df.month != "2026-01"],
+          label="без января 2026 г. (переходный месяц)")
+    check("no_brent", df, formula="D ~ RUS + Y26 + RUSY",
+          label="без учёта Brent (только страна и год)")
+    # jackknife: поочерёдное исключение одного месяца
+    ks = []
+    for m in sorted(df.month.unique()):
+        sub = df[df.month != m]
+        ks.append(float(smf.ols(FORMULA, data=sub).fit().params["RUSY"]))
+    rob["jackknife"] = {"min": float(min(ks)), "max": float(max(ks)),
+                        "n_cases": len(ks),
+                        "label": "поочерёдное исключение одного месяца"}
 
-    # 3) поиск даты сдвига: перебор всех месяцев с непустыми подвыборками
-    months = sorted(df.month.unique())
-    cand_dates = []
-    for m in months:
-        # в обеих подвыборках должны остаться наблюдения обеих стран
-        before, after = df[df.month < m], df[df.month >= m]
-        if (before.country.nunique() == 2 and after.country.nunique() == 2
-                and len(before) >= 8 and len(after) >= 8):
-            cand_dates.append(m)
-    alt = date_search(df, cand_dates)
-    best = max(alt, key=lambda r: r["r2_adj"])
+    # --- предпосылка DiD: в 2025 г. разрыв между странами не имел тренда
+    wide = df.pivot(index="month", columns="country", values="D")
+    wide["gap"] = wide["RUS"] - wide["AZE"]
+    pre = wide.loc[[m for m in wide.index if m < SPLIT]].reset_index()
+    pre["t"] = range(1, len(pre) + 1)
+    trend = smf.ols("gap ~ t", data=pre).fit()
+    pretrend = {"slope": float(trend.params["t"]),
+                "p": float(trend.pvalues["t"]),
+                "months": int(len(pre)),
+                "sd": float(pre["gap"].std(ddof=1))}
 
-    # 4) эконометрическая эквивалентность: взаимодействие Brent×RUS
-    m_int = smf.ols("D ~ Brent*RUS + d + RUS:d", data=df).fit()
-    from scipy import stats as st
-    f_add = ((ols.ssr - m_int.ssr) / 1) / (m_int.ssr / m_int.df_resid)
+    def mean(sub):
+        return {"n": int(len(sub)), "D": float(sub.D.mean()),
+                "sd": float(sub.D.std(ddof=1)) if len(sub) > 1 else 0.0,
+                "P": float(sub.price.mean()),
+                "brent": float(sub.brent.mean())}
+
+    desc = {
+        "RUS_2025": mean(df[(df.country == "RUS") & (df.Y26 == 0)]),
+        "RUS_2026": mean(df[(df.country == "RUS") & (df.Y26 == 1)]),
+        "AZE_2025": mean(df[(df.country == "AZE") & (df.Y26 == 0)]),
+        "AZE_2026": mean(df[(df.country == "AZE") & (df.Y26 == 1)]),
+    }
+    did_manual = ((desc["RUS_2026"]["D"] - desc["RUS_2025"]["D"]) -
+                  (desc["AZE_2026"]["D"] - desc["AZE_2025"]["D"]))
+
+    # --- точность модели
+    pred = ols.fittedvalues
+    acc = {"mae": float(np.abs(ols.resid).mean()),
+           "max_abs": float(np.abs(ols.resid).max()),
+           "mape_price": float((np.abs(ols.resid) / df.price).mean() * 100)}
+
+    # --- перевод в деньги (данные — Минэк и Минфин)
+    met = json.load(open(os.path.join(OUT, "metrics.json"), encoding="utf-8"))
+    V_in, D_in = met["inputs"], met["derived"]
+    k = abs(get["RUSY"]["coef"])
+    export_mt = V_in["ru_oil_export_2026"]
+    loss_bn = k * export_mt * BBL_PER_T / 1000
+    export_value_bn = D_in["oil_export_value_2026"]
+    per_dollar = export_mt * BBL_PER_T / 1000
+    ngd_9m_tln = V_in["ru_ngd_9m2026"]
+    rate = V_in["ru_budget_rate_2026"]
+    ngd_9m_bn = ngd_9m_tln * 1000 / rate
+
+    econ = {
+        "k": k,
+        "full_shift": abs(get["RUSY"]["coef"] + get["Y26"]["coef"]),
+        "export_mt": export_mt,
+        "bbl_per_t": BBL_PER_T,
+        "loss_bn": loss_bn,
+        "export_value_bn": export_value_bn,
+        "loss_share": loss_bn / export_value_bn * 100,
+        "per_dollar_bn": per_dollar,
+        "loss_5usd_bn": 5 * per_dollar,
+        "gap_share_brent": k / desc["RUS_2025"]["brent"] * 100,
+        "ngd_9m_tln": ngd_9m_tln,
+        "ngd_9m_bn": ngd_9m_bn,
+        "ngd_share": loss_bn / ngd_9m_bn * 100,
+        "ngd_loss_pct_of_ngd": loss_bn / ngd_9m_bn * 100,
+        "budget_price": V_in["ru_budget_urals_2026"],
+        "az_export_mt": V_in["az_oil_export_2025"],
+        "az_premium_2026": desc["AZE_2026"]["D"],
+        "az_premium_2025": desc["AZE_2025"]["D"],
+        "az_budget_price": V_in["az_budget_oil_2026"],
+        "rate": V_in["ru_budget_rate_2026"],
+        "loss_rub_trln": loss_bn * V_in["ru_budget_rate_2026"] / 1000,
+        "per_dollar_rub_bn": (V_in["ru_budget_rate_2026"] * per_dollar),
+        "az_per_dollar_bn": V_in["az_oil_export_2025"] * BBL_PER_T / 1000,
+    }
 
     res = {
-        "meta": {
-            "n": int(ols.nobs), "k": int(len(ols.params)),
-            "months": int(df.month.nunique()),
-            "period": f"{df.month.min()} — {df.month.max()}",
-            "split": SPLIT, "formula": FORMULA,
-            "df_resid": int(ols.df_resid),
-        },
+        "meta": {"n": int(ols.nobs), "k_params": int(len(ols.params)),
+                 "months": int(df.month.nunique()),
+                 "period": f"{df.month.min()} — {df.month.max()}",
+                 "split": SPLIT, "formula": FORMULA,
+                 "df_resid": int(ols.df_resid),
+                 "n_rus": int((df.country == "RUS").sum()),
+                 "n_aze": int((df.country == "AZE").sum())},
         "fit": {"r2": float(ols.rsquared), "r2_adj": float(ols.rsquared_adj),
                 "f": float(ols.fvalue), "f_p": float(ols.f_pvalue),
                 "sigma": float(np.sqrt(ols.mse_resid)),
-                "aic": float(ols.aic), "bic": float(ols.bic),
-                "ssr": float(ols.ssr), "loglik": float(ols.llf)},
-        "rows": spec_table(ols, hac),
-        "diag": diagnostics(ols, df),
-        "chow": chow(df),
-        "desc": describe(df),
-        "effects": {
-            "slope_aze": linear_combo(ols, {"Brent": 1}),
-            "slope_rus": linear_combo(ols, {"Brent": 1, "Brent:RUS": 1}),
-            "shift_aze": linear_combo(ols, {"d": 1}),
-            "shift_rus": linear_combo(ols, {"d": 1, "RUS:d": 1}),
-            "gap": linear_combo(ols, {"RUS:d": 1}),
-        },
-        "robust": {"no_outlier": rob["no_outlier"],
-                   "balanced": rob["balanced"], "dates": alt,
-                   "best_date": best},
-        "specs": spec_compare(df),
-        "acc": accuracy(df, ols),
-        "eq_test": {"f": float(f_add), "p": float(1 - st.f.cdf(
-            f_add, 1, m_int.df_resid)), "r2_adj_int": float(m_int.rsquared_adj)},
-        "data": [{"month": r.month, "country": r.country,
-                  "price": float(r.price), "brent": float(r.Brent),
-                  "D": float(r.D), "pred": float(p),
-                  "resid": float(r.D - p)}
-                 for r, p in zip(df.itertuples(), ols.fittedvalues)],
+                "aic": float(ols.aic)},
+        "rows": rows,
+        "diag": diagnostics(ols),
+        "chow": chow_test(df),
+        "dates": date_check(df),
+        "desc": desc,
+        "did_manual": float(did_manual),
+        "pretrend": pretrend,
+        "robust": rob,
+        "acc": acc,
+        "econ": econ,
+        "data": df.assign(D=df.D.round(2)).to_dict("records"),
     }
-
-    # ------------------------------------------------ экономические пересчёты
-    V, D = load_metrics()
-    gap = res["effects"]["gap"]["est"]          # специфический сдвиг РФ
-    export_mt = float(V["ru_oil_export_2026"])
-    export_value_bn = float(D["oil_export_value_2026"])
-    per_dollar = export_mt * BBL_PER_T / 1000          # млрд долл. на 1 долл./барр.
-    az_export_mt = float(V["az_oil_export_2025"])
-    az_per_dollar = az_export_mt * BBL_PER_T / 1000
-    res["econ"] = {
-        "gap": gap,
-        "export_mt": export_mt,
-        "bbl_per_t": BBL_PER_T,
-        "loss_bn": round(per_dollar * abs(gap), 2),
-        "export_value_bn": export_value_bn,
-        "per_dollar_bn": round(per_dollar, 3),
-        "loss_5usd_bn": round(per_dollar * 5, 2),
-        "az_export_mt": az_export_mt,
-        "az_per_dollar_bn": round(az_per_dollar, 3),
-        "az_premium_bn": round(az_per_dollar * res["desc"]["AZE"]["D_mean"], 2),
-        "az_premium_mean": round(res["desc"]["AZE"]["D_mean"], 2),
-    }
-    res["econ"]["loss_share"] = round(
-        res["econ"]["loss_bn"] / export_value_bn * 100, 1)
-    res["econ"]["gap_share_brent"] = round(
-        abs(gap) / res["desc"]["brent"]["mean"] * 100, 1)
-    res["econ"]["ngd_9m_share"] = round(
-        res["econ"]["loss_bn"] * float(V["ru_budget_rate_2026"])
-        / (float(V["ru_ngd_9m2026"]) * 1000) * 100, 1)
-    # доля Urals в цене Brent до и после сдвига при среднем Brent выборки
-    bm = res["desc"]["brent"]["mean"]
-    c = {r["var"]: r["coef"] for r in res["rows"]}
-    res["econ"]["brent_mean"] = round(bm, 2)
-    res["econ"]["urals_share_before"] = round(
-        (bm + c["Intercept"] + c["Brent"] * bm + c["RUS"]) / bm * 100, 1)
-    res["econ"]["urals_share_after"] = round(
-        (bm + c["Intercept"] + c["Brent"] * bm + c["RUS"] + c["d"]
-         + c["RUS:d"]) / bm * 100, 1)
-
-    # сценарии по Brent: цена Urals и Azeri Light до/после сдвига
-    scen = []
-    for b in (60, 80, 100, 120):
-        d_aze_b = c["Intercept"] + c["Brent"] * b
-        d_aze_a = d_aze_b + c["d"]
-        d_rus_b = d_aze_b + c["RUS"]
-        d_rus_a = d_rus_b + c["d"] + c["RUS:d"]
-        scen.append({"brent": b,
-                     "urals_before": b + d_rus_b, "urals_after": b + d_rus_a,
-                     "aze_before": b + d_aze_b, "aze_after": b + d_aze_a,
-                     "gap_before": d_rus_b, "gap_after": d_rus_a})
-    res["scenarios"] = scen
-
     with open(os.path.join(OUT, "model.json"), "w", encoding="utf-8") as fh:
         json.dump(res, fh, ensure_ascii=False, indent=1)
 
-    # ------------------------------------------------------------- отчёт
-    print(f"n = {res['meta']['n']}, месяцев = {res['meta']['months']}, "
-          f"период {res['meta']['period']}")
-    print(f"R2 = {res['fit']['r2']:.4f}, adj = {res['fit']['r2_adj']:.4f}, "
-          f"F = {res['fit']['f']:.2f} (p = {res['fit']['f_p']:.3g}), "
-          f"sigma = {res['fit']['sigma']:.3f}")
-    print(f"{'переменная':12s} {'коэф.':>9s} {'se':>7s} {'p':>8s} "
-          f"{'HAC se':>8s} {'HAC p':>8s}")
-    for r in res["rows"]:
-        print(f"{r['var']:12s} {r['coef']:9.3f} {r['se']:7.3f} {r['p']:8.3f} "
-              f"{r['hac_se']:8.3f} {r['hac_p']:8.3f}")
-    dg = res["diag"]
-    print(f"BP p={dg['bp_p']:.3f}  BG(2) p={dg['bg_p']:.3f}  JB p={dg['jb_p']:.3f}  "
-          f"RESET p={dg['reset_p']:.3f}  DW={dg['dw']:.2f}  VIF max={dg['vif_max']}")
-    print(f"Чоу: F={res['chow']['F']:.2f}, p={res['chow']['p']:.3g}")
-    e = res["effects"]
-    for k, nm in (("slope_aze", "наклон АР"), ("slope_rus", "наклон РФ"),
-                  ("shift_aze", "сдвиг АР"), ("shift_rus", "сдвиг РФ"),
-                  ("gap", "разрыв сдвигов")):
-        print(f"{nm:16s} {e[k]['est']:8.3f}  se={e[k]['se']:6.3f}  "
-              f"t={e[k]['t']:6.2f}  p={e[k]['p']:.4f}  "
-              f"[{e[k]['lo']:.2f}; {e[k]['hi']:.2f}]")
-    print("робастность: без выброса n=%d adj=%.3f | сбалансированная n=%d adj=%.3f"
-          % (res["robust"]["no_outlier"]["n"],
-             res["robust"]["no_outlier"]["r2_adj"],
-             res["robust"]["balanced"]["n"],
-             res["robust"]["balanced"]["r2_adj"]))
-    for a in alt:
-        print(f"  дата {a['date']}: {a['coef']:7.2f} (se {a['se']:.2f}, "
-              f"p {a['p']:.3f}), adj R2 {a['r2_adj']:.3f}")
-    print(f"цена адаптации {res['econ']['gap']:.2f} долл./барр. → "
-          f"{res['econ']['loss_bn']:.2f} млрд долл. "
-          f"({res['econ']['loss_share']:.1f} % нефтяного экспорта)")
-    print("сохранено: out/model.json")
+    # --------------------------------------------------------------- отчёт
+    print(f"n = {res['meta']['n']}, месяцев {res['meta']['months']}, "
+          f"R² = {res['fit']['r2']:.3f}, adj R² = {res['fit']['r2_adj']:.3f}")
+    for r in rows:
+        print(f"  {r['var']:9s} {r['coef']:8.3f}  se {r['se']:6.3f} "
+              f"p {r['p']:.4g} | кластер: se {r['cl_se']:6.3f} p {r['cl_p']:.3g}")
+    print(f"DiD вручную: {did_manual:.3f}, коэффициент k: {get['RUSY']['coef']:.3f}")
+    print(f"тренд разрыва в 2025 г.: {pretrend['slope']:.3f} долл./барр. в месяц "
+          f"(p {pretrend['p']:.3f})")
+    print(f"потери: {econ['loss_bn']:.2f} млрд долл., "
+          f"{econ['loss_share']:.1f} % экспорта, "
+          f"{econ['ngd_share']:.1f} % НГД")
+    print("сохранено:", os.path.join(OUT, "model.json"))
 
 
 if __name__ == "__main__":
