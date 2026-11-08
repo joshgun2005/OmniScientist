@@ -334,6 +334,106 @@ REGISTRY = {
              "yanvare-sentyabre-prevysila-96-dollarov-682195 (дата обращения: "
              "08.11.2026).",
     ),
+    # ------ данные модели: годовые ряды цен и объёмов (документ 2)
+    "urals_annual": dict(
+        sort="3-24 urals годовые",
+        short="Средняя цена нефти сорта «Юралс». Указ. соч.",
+        gost="Средняя цена нефти сорта «Юралс» за 2013—2024 годы : статистика "
+             "// Министерство финансов Российской Федерации. — URL: "
+             "https://minfin.gov.ru/ru/statistics/konjunktura/ (дата обращения: "
+             "08.11.2026).",
+    ),
+    "urals_2025_result": dict(
+        sort="3-25 urals 2025 итоги",
+        short="Средняя цена Urals в 2025 году",
+        gost="Средняя цена нефти Urals в 2025 году составила $55,6 за баррель // "
+             "Финансы Mail. — 2026. — 12 мая. — URL: https://finance.mail.ru/"
+             "article/srednyaya-cena-nefti-urals-v-2025-godu-63958214/ (дата "
+             "обращения: 08.11.2026).",
+    ),
+    "az_light_annual": dict(
+        sort="3-26 azeri light годовые",
+        short="Азербайджанская легкая нефть Azeri Light. Указ. соч.",
+        gost="Средняя цена нефти Azeri Light на условиях CIF за 2018—2025 "
+             "годы // Central Bank of Azerbaijan : статистика платёжного "
+             "баланса. — URL: https://www.cbar.az/page-40/statistical-bulletin "
+             "(дата обращения: 08.11.2026).",
+    ),
+    "az_light_2024": dict(
+        sort="3-28 azeri light 2024",
+        short="Средняя цена нефти Azeri Light за восемь месяцев превысила $73",
+        gost="Средняя цена нефти Azeri Light за восемь месяцев превысила $73 за "
+             "баррель // Report. — 2025. — 29 октября. — URL: "
+             "https://report.az/ru/energetika/srednyaya-cena-nefti-azeri-light-za-"
+             "8-mesyacev-prevysila-73-za-barrel (дата обращения: 08.11.2026).",
+    ),
+    "az_light_2025": dict(
+        sort="3-29 azeri light 2025 цена экспорта",
+        short="Средняя цена экспорта нефти Азербайджана снизилась до $70",
+        gost="Средняя цена экспорта нефти Азербайджана снизилась до $70 // "
+             "Report. — 2025. — 15 декабря. — URL: https://report.az/ru/finansy/"
+             "cba-srednyaya-cena-eksporta-nefti-azerbajdzhana-snizilas-do-70 "
+             "(дата обращения: 08.11.2026).",
+    ),
+    "az_budget_series": dict(
+        sort="3-30 азербайджан бюджетная цена",
+        short="Параметры государственного бюджета Азербайджанской Республики",
+        gost="О параметрах государственного бюджета Азербайджанской Республики на "
+             "2018—2026 годы : средняя цена нефти Azeri Light в бюджете // "
+             "Report. — 2025. — 4 ноября. — URL: https://report.az/ru/finansy/"
+             "sahil-babaev-srednyaya-cena-azeri-light-za-9-mesyacev-prevysila-72-"
+             "bar (дата обращения: 08.11.2026).",
+    ),
+    "ru_export_series": dict(
+        sort="3-31 экспорт нефти россия ряд",
+        short="Внешняя торговля Российской Федерации по основным товарам",
+        gost="Внешняя торговля Российской Федерации по основным товарам : "
+             "статистика // Банк России. — URL: https://www.cbr.ru/statistics/"
+             "macro_itm/svs/ (дата обращения: 08.11.2026).",
+    ),
+    "az_export_series": dict(
+        sort="3-32 экспорт нефти азербайджан ряд",
+        short="Азербайджан сохранил в 2023 году экспорт нефти на уровне 2022-го",
+        gost="Азербайджан сохранил в 2023 году экспорт нефти на уровне 2022-го // "
+             "Интерфакс-Азербайджан. — 2024. — 19 января. — URL: "
+             "https://www.angi.ru/news/2913354/ (дата обращения: 08.11.2026).",
+    ),
+    "ru_export_2025_novak": dict(
+        sort="3-33 новак экспорт 2025",
+        short="Новак сообщил, что РФ в 2025 году экспортировала 238 млн т нефти",
+        gost="Новак сообщил, что РФ в 2025 году экспортировала 238 млн т нефти // "
+             "Интерфакс. — 2026. — 27 февраля. — URL: https://www.alta.ru/"
+             "external_news/126026/ (дата обращения: 08.11.2026).",
+    ),
+    "minfin_ngd_2025": dict(
+        sort="3-34 нефтегазовые доходы 2025",
+        short="Нефтегазовые доходы федерального бюджета за 2025 год",
+        gost="Предварительная оценка исполнения федерального бюджета за 2025 год "
+             "// Министерство финансов Российской Федерации. — 2026. — 19 января. "
+             "— URL: https://minfin.gov.ru/ru/press-center/ (дата обращения: "
+             "08.11.2026).",
+    ),
+    "rosneft_cnpc": dict(
+        sort="3-35 роснефть cnpc контракт",
+        short="«Роснефть» и CNPC: условия долгосрочных поставок нефти",
+        gost="«Роснефть» и CNPC подписали контракт на поставку 365 млн т нефти // "
+             "Ведомости. — 2013. — 21 июня. — URL: https://www.vedomosti.ru/"
+             "business/articles/2016/01/27/625729_rosneft-cnpc (дата обращения: "
+             "08.11.2026).",
+    ),
+    "acg_contract": dict(
+        sort="3-36 ачг контракт",
+        short="Контракт на разработку блока Азери — Чираг — Гюнешли",
+        gost="Азербайджан и консорциум АЧГ продлили контракт до 2050 года // "
+             "Trend. — 2026. — URL: https://ru.trend.az/azerbaijan/4225939.html "
+             "(дата обращения: 08.11.2026).",
+    ),
+    "greene": dict(
+        sort="2-22 greene",
+        short="Greene W. H. Econometric Analysis",
+        gost="Greene, W. H. Econometric Analysis / W. H. Greene. — 8th ed. — "
+             "Harlow : Pearson, 2018. — 1170 p. — ISBN 978-0-13-600383-0.",
+    ),
     "az_oil_8m": dict(
         sort="3-13 азербайджан 14,678 млн т",
         short="Азербайджан в январе — августе 2026 года. Op. cit.",
@@ -452,10 +552,13 @@ def short(key):
 UTIL = {
     # методика и программные средства
     "newey_west", "white_1980", "chow_1960", "zeileis_2003",
-    "seabold_2010", "mckinney_2010",
+    "seabold_2010", "mckinney_2010", "greene",
 }
 DATA = {
-    # источники данных панели
-    "minec_urals", "az_light_2026", "az_light_9m", "oil_prices_data",
-    "az_oil_9m", "az_oil_8m", "energy_inst", "budget_2026",
+    # источники данных годовой панели
+    "urals_annual", "urals_2025_result", "az_light_annual", "az_light_2023",
+    "az_light_2024", "az_light_2025", "az_budget_series", "ru_export_series",
+    "az_export_series", "ru_export_2025_novak", "oil_prices_data",
+    "minfin_ngd_2025", "rosneft_cnpc", "acg_contract", "budget_2026",
+    "price_cap", "minec_urals",
 }

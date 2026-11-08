@@ -135,6 +135,29 @@ class MRDoc(base.VKR):
                 chunks.append((".", {}))
         return self.rich(chunks, indent=0, after=after, spacing=1.5)
 
+    def where_mixed(self, pairs, after=8):
+        """Расшифровка формулы, где символ может быть и строкой, и списком.
+
+        Символ строкой «P_it» набирается курсивом с подстрочным индексом;
+        символ списком — готовыми фрагментами [("b", {"i": True}),
+        ("AZ", {"sub": True})], что нужно для составных обозначений вроде bAZ.
+        """
+        chunks = [("где ", {})]
+        for i, (sym, text) in enumerate(pairs):
+            if isinstance(sym, list):
+                chunks.extend(sym)
+            else:
+                base, _, sub = sym.partition("_")
+                chunks.append((base, {"i": True}))
+                if sub:
+                    chunks.append((sub, {"sub": True}))
+            chunks.append((" — " + text, {}))
+            if i < len(pairs) - 1:
+                chunks.append(("; ", {}))
+            elif not text.rstrip().endswith("."):
+                chunks.append((".", {}))
+        return self.rich(chunks, indent=1.25, after=after, spacing=1.5)
+
     def where(self, pairs, after=15):
         """Расшифровка формулы: «где» и каждый символ с новой строки.
 
