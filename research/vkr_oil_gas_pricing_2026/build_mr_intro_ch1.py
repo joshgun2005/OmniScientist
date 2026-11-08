@@ -9,6 +9,7 @@ import json
 import os
 
 import fmt
+import verify_layout
 import text_mr_ch1 as T
 from mr_engine import MRDoc
 
@@ -110,7 +111,15 @@ def main():
 
     doc.toc([(lvl, txt, None) for lvl, txt in doc.headings])
 
+    # номера страниц в оглавлении: вёрстку оцениваем по промежуточному
+    # файлу, чтобы не сохранять документ дважды (иначе дублируется
+    # word/footnotes.xml внутри архива)
+    path = doc.save(os.path.join(OUT, "_tmp_toc.docx"))
+    pages_map = verify_layout.page_map(path)
+    doc.fill_toc_pages(pages_map)
     path = doc.save(os.path.join(OUT, NAME))
+    if os.path.exists(os.path.join(OUT, "_tmp_toc.docx")):
+        os.remove(os.path.join(OUT, "_tmp_toc.docx"))
 
     chars = sum(len(t) for t in doc.body)
     print(f"файл: {path}")

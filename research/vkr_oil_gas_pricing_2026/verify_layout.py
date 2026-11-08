@@ -171,7 +171,8 @@ def walk(path, exact=True):
                 h, _ = para_height(p, width, exact)
             t = p.text.strip()
             if t and _bold(p) and len(t) < 130 and (
-                    t[0].isdigit() or t.isupper()):
+                    t[0].isdigit() or t.isupper()
+                    or t.startswith("Список источников")):
                 marks.append((pages, t[:60]))
             if used + h > height:
                 pages += 1
@@ -209,7 +210,8 @@ def page_map(path):
             h = image_height(p) + 0.3 if para_has_image(p) else para_height(p, width)[0]
             t = p.text.strip()
             if t and _bold(p) and len(t) < 130 and (
-                    t[0].isdigit() or t.isupper()):
+                    t[0].isdigit() or t.isupper()
+                    or t.startswith("Список источников")):
                 out[t] = pages
             if used + h > height:
                 pages += 1

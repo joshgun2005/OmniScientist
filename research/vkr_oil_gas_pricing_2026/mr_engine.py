@@ -213,7 +213,11 @@ class MRDoc(base.VKR):
 
     # --------------------------------------------------------------- вывод
     def save(self, path):
-        self._attach_footnotes()
+        # повторное сохранение в тот же объект не должно дублировать часть
+        # word/footnotes.xml в пакете
+        if not getattr(self, "_footnotes_attached", False):
+            self._attach_footnotes()
+            self._footnotes_attached = True
         return super().save(path)
 
     @property
