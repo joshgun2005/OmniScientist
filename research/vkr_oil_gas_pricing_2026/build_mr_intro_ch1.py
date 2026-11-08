@@ -98,6 +98,15 @@ def main():
               "проблематике: контрактные структуры и формулы индексации, "
               "ценообразование на трубопроводный газ, методология цен СПГ, "
               "институциональные аспекты нефтяного рынка.")
+    # блоки для контроля прослеживаемости чисел (verify_numbers.py):
+    # список литературы в проверку не входит — это не числовые утверждения
+    body_for_check = list(doc.body)
+    doc.page_break()
+    T.bibliography(doc)
+
+    with open(os.path.join(OUT, "blocks.json"), "w", encoding="utf-8") as fh:
+        json.dump({"body_blocks": body_for_check, "headings": doc.headings,
+                   "references": doc.refs}, fh, ensure_ascii=False, indent=1)
 
     doc.toc([(lvl, txt, None) for lvl, txt in doc.headings])
 

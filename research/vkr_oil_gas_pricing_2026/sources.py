@@ -64,6 +64,28 @@ SOURCES_RAW = [
          gost="Азербайджан в январе — августе 2026 года экспортировал 14,678 млн т "
               "нефти на 9,282 млрд долларов // Trend. — 2026. — 13 октября. — URL: "
               "https://ru.trend.az/azerbaijan/4234316.html (дата обращения: 06.11.2026)."),
+    dict(key="az_light_1h2025",
+         sort="Азербайджанская нефть в I полугодии продавалась",
+         gost="Азербайджанская нефть в I полугодии продавалась на 5,4 % "
+              "дороже заложенной в бюджете // Report. — 2025. — 19 августа. — "
+              "URL: https://report.az/ru/finansy/"
+              "azerbajdzhanskaya-neft-v-i-polugodii-prodavalas-na-5-4-dorozhe-"
+              "byudzhetnoj-ceny (дата обращения: 08.11.2026). — Текст : "
+              "электронный."),
+    dict(key="az_light_1h2026",
+         sort="Цена на Azeri Light резко превысила",
+         gost="Цена на Azeri Light резко превысила бюджетный прогноз — "
+              "статистика по месяцам // ABC.AZ. — 2026. — 18 августа. — URL: "
+              "https://abc.az/ru/news/212086/cena-na-azeri-light-rezko-"
+              "prevysila-byudzetnyi-prognoz-statistika-po-mesyacam (дата "
+              "обращения: 08.11.2026). — Текст : электронный."),
+    dict(key="az_light_9m2026",
+         sort="Средняя цена нефти Azeri Light в январе-сентябре",
+         gost="Средняя цена нефти Azeri Light в январе-сентябре превысила "
+              "96 долларов // АПА-Экономикс. — 2026. — 4 ноября. — URL: "
+              "https://ru.apa.az/finance/srednyaya-cena-nefti-azeri-light-v-"
+              "yanvare-sentyabre-prevysila-96-dollarov-682195 (дата "
+              "обращения: 08.11.2026). — Текст : электронный."),
     dict(key="az_gas_price_customs",
          sort="По какой цене Азербайджан",
          gost="По какой цене Азербайджан экспортирует природный газ? // Caspian "
@@ -93,7 +115,7 @@ SOURCES_RAW = [
     dict(key="budget_2026", group=0,
          gost="О федеральном бюджете на 2026 год и на плановый период 2027 и 2028 годов : "
               "федеральный закон от 28.11.2025 № 426-ФЗ // Официальный интернет-портал "
-              "правовой информации. — URL: http://pravo.gov.ru (дата обращения: 03.11.2026)."),
+              "правовой информации. — URL: http://publication.pravo.gov.ru/document/0001202511280001 (дата обращения: 08.11.2026)."),
 
     # ------------------------------------------------ нормативные правовые акты
     dict(key="binnetzade",
@@ -150,13 +172,13 @@ SOURCES_RAW = [
     dict(key="iea_gas",
          sort="Международное энергетическое агентство (газ)",
          gost="Gas Market Report, Q4 2026 / International Energy Agency. — Paris : IEA, 2026. — "
-              "URL: https://www.iea.org/reports/gas-market-report (дата обращения: 03.11.2026)."),
+              "URL: https://www.iea.org/reports/gas-market-report (дата обращения: 08.11.2026)."),
     dict(key="minec_urals",
          sort="Минэкономразвития России (Юралс)",
          gost="О среднем уровне цен нефти сорта «Юралс» за январь — октябрь 2026 года : "
               "информация Минэкономразвития России // Министерство экономического развития "
               "Российской Федерации : официальный сайт. — URL: https://www.economy.gov.ru "
-              "(дата обращения: 03.11.2026)."),
+              "(дата обращения: 08.11.2026)."),
     dict(key="minec_macro",
          sort="Минэкономразвития России (прогноз)",
          gost="Прогноз социально-экономического развития Российской Федерации на 2026 год и "
@@ -228,7 +250,7 @@ SOURCES_RAW = [
     dict(key="minec_discount",
          sort="Дисконт Urals",
          gost="Почему скидка на российскую нефть Brent выросла выше $20 // Эксперт. — 2026. — "
-              "17 мая. — URL: https://expert.ru (дата обращения: 02.11.2026)."),
+              "17 мая. — URL: https://expert.ru/analitika/tarifnye-voiny/pochemu-skidka-na-rossiyskuyu-neft-brent-vyrosla-vyshe-20 (дата обращения: 08.11.2026)."),
     dict(key="disc_peak_2025",
          sort="Пик дисконта",
          gost="Дисконт на российскую нефть достиг максимума за два с половиной года. Что "
@@ -242,11 +264,11 @@ SOURCES_RAW = [
     dict(key="tss_2025",
          sort="Итоги отрасли",
          gost="Итоги года в нефтегазовой отрасли — 2025 // Агентство нефтегазовой информации. "
-              "— 2026. — 12 января. — URL: https://www.angi.ru (дата обращения: 02.11.2026)."),
+              "— 2026. — 12 января. — URL: https://www.angi.ru/news/2930162/ (дата обращения: 08.11.2026)."),
     dict(key="gazprom_turkey",
          sort="Турецкий поток (2025)",
          gost="Сколько миллиардов может потерять «Газпром» // Балтийский курс. — 2026. — "
-              "18 марта. — URL: https://bb.lv (дата обращения: 02.11.2026)."),
+              "18 марта. — URL: https://bb.lv/statja/ekonomika/ (дата обращения: 08.11.2026)."),
     dict(key="turkish_stream",
          sort="Турецкий поток (2026)",
          gost="«Газпром» нарастил экспорт газа по «Турецкому потоку» в Европу до максимума // "
@@ -275,7 +297,7 @@ SOURCES_RAW = [
     dict(key="ttf_2026",
          sort="Цена газа в Европе",
          gost="Сколько ЕС платит за газ на самом деле: цены и контракты // OilCapital. — "
-              "2026. — 5 ноября. — URL: https://www.osnmedia.ru (дата обращения: 05.11.2026)."),
+              "2026. — 5 ноября. — URL: https://www.osnmedia.ru/ekonomika/ (дата обращения: 08.11.2026)."),
     dict(key="price_cap",
          sort="Потолок цен",
          gost="Евросоюз с 1 февраля снизит потолок цен на нефть из России до $44,1 за "
@@ -284,7 +306,7 @@ SOURCES_RAW = [
     dict(key="brent_monthly",
          sort="Цена Brent",
          gost="Средняя цена Urals по итогам июля упала ниже $60 за баррель // ИнфоТЭК. — "
-              "2026. — 5 августа. — URL: https://itek.ru (дата обращения: 02.11.2026)."),
+              "2026. — 5 августа. — URL: https://itek.ru/news/srednyaya-cena-urals-po-itogam-ijulya-upala-nizhe-60-za-barrel/ (дата обращения: 08.11.2026)."),
     dict(key="hormuz",
          sort="Ормузский пролив",
          gost="Ормузский пролив снова толкает нефть вверх — Brent держится выше $108 // "
@@ -294,7 +316,7 @@ SOURCES_RAW = [
          sort="Экспорт газа Азербайджана",
          gost="Азербайджан увеличил экспорт газа с месторождения Шах-Дениз до 11,44 млрд "
               "кубометров за первое полугодие 2026 года // Новыны.LIVE. — 2026. — 4 августа. — "
-              "URL: https://novyny.live (дата обращения: 03.11.2026)."),
+              "URL: https://novyny.live/ru/ekonomi/energy/gazovyi-kozyr-azerbaidzhana-eksport-s-krupneishego-mestorozhdeniia-ustanovil-novyi-rekord-338433.html (дата обращения: 08.11.2026)."),
     dict(key="az_customs",
          sort="Таможенная статистика Азербайджана",
          gost="Турция стала лидером по закупкам азербайджанского газа в январе — августе "

@@ -405,6 +405,105 @@ def appendix_az_tables():
     return "\n".join(lines)
 
 
+# ---------------------------------------------------------------- панель
+# Месячные экспортные цены Azeri Light (долл./барр.) из справок Минфина АР
+# о полугодовом исполнении бюджета. Источники: report.az (I пол. 2025),
+# abc.az (I пол. 2026). Остальные месяцы публикуются только накопленным
+# итогом (за 9 месяцев 2026 г. — 96,1 долл./барр.), поэтому в панель не
+# входят: ряд намеренно не достраивается.
+AZ_LIGHT = {
+    "2025-01": 81.3, "2025-02": 77.4, "2025-03": 74.1,
+    "2025-04": 69.6, "2025-05": 66.3, "2025-06": 74.0,
+    "2026-01": 58.4, "2026-02": 71.1, "2026-03": 106.4,
+    "2026-04": 120.1, "2026-05": 111.8, "2026-06": 89.0,
+}
+
+
+def panel_frame():
+    """Панель «страна — месяц»: фактические экспортные цены двух стран.
+
+    Единица наблюдения — страна-месяц. Для России используется расчётная
+    цена Urals (Минэкономразвития), для Азербайджана — средняя экспортная
+    цена Azeri Light (Минфин АР); обе величины — контрактные цены
+    исполненных сделок, а не биржевые котировки.
+    """
+    b = pd.read_csv(os.path.join(DATA, "brent-monthly.csv"))
+    b["m"] = pd.to_datetime(b["Date"]).dt.to_period("M")
+    brent = b.set_index("m")["Price"]
+
+    rows = []
+    for month, price in urals_series().items():
+        rows.append({"month": month, "country": "RUS", "price": float(price),
+                     "brent": float(brent[month]),
+                     "d_cap26": int(month >= pd.Period("2026-02", "M")),
+                     "d_phase": int(month >= pd.Period("2025-11", "M"))})
+    for month, price in AZ_LIGHT.items():
+        m = pd.Period(month, "M")
+        rows.append({"month": m, "country": "AZE", "price": float(price),
+                     "brent": float(brent[m]),
+                     "d_cap26": int(m >= pd.Period("2026-02", "M")),
+                     "d_phase": 0})
+    df = pd.DataFrame(rows).sort_values(["month", "country"])
+    df["country"] = pd.Categorical(df["country"], ["AZE", "RUS"])
+    df["prem"] = df["price"] - df["brent"]
+    return df.reset_index(drop=True)
+
+
+def model_panel(df):
+    """Модель П1: панельная регрессия цены на Brent с взаимодействиями.
+
+    price = a + b·Brent + g·RUS + d·D2026 + q·(D2026·RUS) + e
+
+    Коэффициент b — перенос изменения Brent в цену азербайджанской нефти,
+    b + g — в цену российской; d — институциональный сдвиг для Азербайджана,
+    d + q — для России. Робастные ошибки Ньюи — Уэста (2 лага).
+    """
+    import statsmodels.formula.api as smf
+    m = smf.ols("price ~ brent + C(country) + d_cap26*C(country)",
+                data=df).fit(cov_type="HAC", cov_kwds={"maxlags": 2})
+    res = ols_table(m, "П1: панельная модель цен России и Азербайджана")
+    res["spec"] = ("OLS по объединённой выборке, HAC (Newey-West, 2 лага); "
+                   "панель «страна — месяц»")
+    res["n_countries"] = int(df["country"].nunique())
+    res["period"] = f"{df['month'].min()}–{df['month'].max()}"
+    b = m.params
+    res["derived"] = {
+        "slope_aze": round(float(b["brent"]), 4),
+        "slope_rus": round(float(b["brent"] + b["brent:C(country)[T.RUS]"]), 4)
+        if "brent:C(country)[T.RUS]" in b else round(float(b["brent"]), 4),
+        "shift_aze": round(float(b["d_cap26"]), 4),
+        "shift_rus": round(float(b["d_cap26"]
+                                 + b["d_cap26:C(country)[T.RUS]"]), 4),
+        "mean_prem_aze": round(float(df[df.country == "AZE"]["prem"].mean()), 2),
+        "mean_prem_rus": round(float(df[df.country == "RUS"]["prem"].mean()), 2),
+    }
+    return res
+
+
+def model_panel_prem(df):
+    """Модель П2: премия (скидка) к Brent в зависимости от страны и сдвига."""
+    import statsmodels.formula.api as smf
+    m = smf.ols("prem ~ C(country) + d_cap26*C(country)",
+                data=df).fit(cov_type="HAC", cov_kwds={"maxlags": 2})
+    res = ols_table(m, "П2: премия к Brent по странам")
+    res["spec"] = "OLS, HAC (Newey-West, 2 лага); зависимая переменная — премия"
+    return res
+
+
+def panel_dump(df):
+    lines = ["ПАНЕЛЬ «СТРАНА — МЕСЯЦ»: ФАКТИЧЕСКИЕ ЭКСПОРТНЫЕ ЦЕНЫ", ""]
+    lines.append("  месяц    страна   цена, долл./барр.   Brent   премия")
+    for _, r in df.iterrows():
+        lines.append(f"  {r['month']}   {r['country']}      "
+                     f"{r['price']:8.2f}          {r['brent']:7.2f}  "
+                     f"{r['prem']:7.2f}")
+    lines.append("")
+    lines.append("Источники: Urals — Минэкономразвития России; Azeri Light —")
+    lines.append("Минфин Азербайджана (справки об исполнении бюджета, I пол.")
+    lines.append("2025 и I пол. 2026 г.); Brent — datasets/oil-prices.")
+    return "\n".join(lines)
+
+
 def main():
     df = load_pair()
     g = az_gas_frame()
@@ -419,6 +518,13 @@ def main():
         "M4": model4(g),
         "M4b": model4b(inc),
         "M5": model5(),
+        "P1": model_panel(panel_frame()),
+        "panel": [{"month": str(r["month"]), "country": str(r["country"]),
+                   "price": round(float(r["price"]), 2),
+                   "brent": round(float(r["brent"]), 2),
+                   "prem": round(float(r["prem"]), 2)}
+                  for _, r in panel_frame().iterrows()],
+        "P2": model_panel_prem(panel_frame()),
         "az": {
             "gas_cumulative": {str(k): {"volume_bcm": float(v["volume_bcm"]),
                                         "value_bn": float(v["value_bn_usd"]),
@@ -438,7 +544,7 @@ def main():
               encoding="utf-8") as fh:
         json.dump(res, fh, ensure_ascii=False, indent=1)
 
-    for key in ("M1", "M2", "M2b", "M3", "M4", "M4b"):
+    for key in ("M1", "M2", "M2b", "M3", "M4", "M4b", "P1", "P2"):
         m = res[key]
         print(f"\n{m['name']}")
         print(f"  n={m.get('n')}, R2={m.get('r2')}, "
@@ -454,6 +560,8 @@ def main():
         fh.write(text_dump())
         fh.write("\n\n")
         fh.write(appendix_az_tables())
+        fh.write("\n\n")
+        fh.write(panel_dump(panel_frame()))
     print("\nсохранено: out/econometrics.json, out/econometrics_dump.txt")
 
 

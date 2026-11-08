@@ -89,6 +89,45 @@ def fig_az_gas():
     save(fig, "fig_m6_az_gas.png")
 
 
+def fig_panel():
+    """Премия (скидка) к Brent: Россия и Азербайджан, 2025–2026."""
+    rows = E["panel"]
+    months = sorted({r["month"] for r in rows})
+    idx = {m: i for i, m in enumerate(months)}
+    fig, ax = plt.subplots(figsize=(6.3, 3.3))
+    for country, color, marker, label in (
+            ("AZE", GREEN, "o", "Азербайджан (Azeri Light)"),
+            ("RUS", ACCENT, "s", "Россия (Urals)")):
+        pts = sorted([r for r in rows if r["country"] == country],
+                     key=lambda r: r["month"])
+        # разрыв в ряду не соединяем линией
+        seg_x, seg_y = [], []
+        for r in pts:
+            if seg_x and idx[r["month"]] - seg_x[-1] > 1:
+                ax.plot(seg_x, seg_y, marker=marker, ms=4.0, lw=1.5,
+                        color=color)
+                seg_x, seg_y = [], []
+            seg_x.append(idx[r["month"]])
+            seg_y.append(r["prem"])
+        ax.plot(seg_x, seg_y, marker=marker, ms=4.0, lw=1.5, color=color,
+                label=label)
+    ax.axhline(0, color="#55595f", lw=0.9)
+    cut = idx.get("2026-02")
+    if cut is not None:
+        ax.axvspan(cut - 0.5, len(months) - 0.5, color=BLUE, alpha=0.07)
+        ax.annotate("с февраля 2026 г.\nдействует предельная цена",
+                    xy=(cut + 0.4, -8.5), fontsize=7.5, color=BLUE,
+                    ha="left", va="center")
+    ax.set_xticks(list(range(len(months))))
+    ax.set_xticklabels([m[2:] for m in months], rotation=45, ha="right")
+    ax.set_xlim(-0.6, len(months) - 0.4)
+    ax.set_ylabel("Премия (скидка) к Brent, долл./барр.")
+    ax.legend(frameon=False, fontsize=8, loc="lower left",
+              bbox_to_anchor=(0.0, 0.02))
+    save(fig, "fig_panel_premium.png")
+
+
 if __name__ == "__main__":
     fig_discriminant()
     fig_az_gas()
+    fig_panel()

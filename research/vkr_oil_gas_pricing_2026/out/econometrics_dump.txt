@@ -5,8 +5,8 @@
 Dep. Variable:                  brent   R-squared:                       0.985
 Model:                            OLS   Adj. R-squared:                  0.985
 Method:                 Least Squares   F-statistic:                 3.634e+05
-Date:                Sat, 07 Nov 2026   Prob (F-statistic):               0.00
-Time:                        18:52:52   Log-Likelihood:                -1338.9
+Date:                Sun, 08 Nov 2026   Prob (F-statistic):               0.00
+Time:                        09:08:29   Log-Likelihood:                -1338.9
 No. Observations:                 474   AIC:                             2690.
 Df Residuals:                     468   BIC:                             2715.
 Df Model:                           5                                         
@@ -38,8 +38,8 @@ strong multicollinearity or other numerical problems.
 Dep. Variable:                      y   R-squared:                       0.525
 Model:                            OLS   Adj. R-squared:                  0.415
 Method:                 Least Squares   F-statistic:                     9.661
-Date:                Sat, 07 Nov 2026   Prob (F-statistic):            0.00128
-Time:                        18:52:52   Log-Likelihood:                -47.438
+Date:                Sun, 08 Nov 2026   Prob (F-statistic):            0.00128
+Time:                        09:08:29   Log-Likelihood:                -47.438
 No. Observations:                  17   AIC:                             102.9
 Df Residuals:                      13   BIC:                             106.2
 Df Model:                           3                                         
@@ -67,8 +67,8 @@ Notes:
 Dep. Variable:                  brent   No. Observations:                  473
 Model:                     AutoReg(1)   Log Likelihood                 422.275
 Method:               Conditional MLE   S.D. of innovations              0.099
-Date:                Sat, 07 Nov 2026   AIC                           -838.550
-Time:                        18:52:52   BIC                           -826.073
+Date:                Sun, 08 Nov 2026   AIC                           -838.550
+Time:                        09:08:29   BIC                           -826.073
 Sample:                    06-30-1987   HQIC                          -833.643
                          - 10-31-2026                                         
 ==============================================================================
@@ -115,3 +115,40 @@ AR.1            1.0087           +0.0000j            1.0087            0.0000
   2026-08     14.678      9.282      632.4       86.27     90.66    -4.39
 
 Пересчёт: 1 тыс. куб. м = 35,11 млн БТЕ; 1 т = 7,33 барр.
+
+ПАНЕЛЬ «СТРАНА — МЕСЯЦ»: ФАКТИЧЕСКИЕ ЭКСПОРТНЫЕ ЦЕНЫ
+
+  месяц    страна   цена, долл./барр.   Brent   премия
+  2025-01   AZE         81.30            79.27     2.03
+  2025-01   RUS         67.66            79.27   -11.61
+  2025-02   AZE         77.40            75.44     1.96
+  2025-03   AZE         74.10            72.73     1.37
+  2025-04   AZE         69.60            68.13     1.47
+  2025-05   AZE         66.30            64.45     1.85
+  2025-05   RUS         52.08            64.45   -12.37
+  2025-06   AZE         74.00            71.44     2.56
+  2025-07   RUS         60.37            71.04   -10.67
+  2025-09   RUS         56.82            67.99   -11.17
+  2025-10   RUS         53.68            64.54   -10.86
+  2025-11   RUS         44.87            63.80   -18.93
+  2025-12   RUS         39.18            62.54   -23.36
+  2026-01   AZE         58.40            66.60    -8.20
+  2026-01   RUS         40.95            66.60   -25.65
+  2026-02   AZE         71.10            70.89     0.21
+  2026-02   RUS         44.59            70.89   -26.30
+  2026-03   AZE        106.40           103.13     3.27
+  2026-03   RUS         77.00           103.13   -26.13
+  2026-04   AZE        120.10           117.29     2.81
+  2026-04   RUS         94.87           117.29   -22.42
+  2026-05   AZE        111.80           107.14     4.66
+  2026-05   RUS         86.52           107.14   -20.62
+  2026-06   AZE         89.00            85.40     3.60
+  2026-06   RUS         63.52            85.40   -21.88
+  2026-07   RUS         59.02            83.76   -24.74
+  2026-08   RUS         67.11            91.08   -23.97
+  2026-09   RUS         92.08           114.16   -22.08
+  2026-10   RUS        101.46           123.93   -22.47
+
+Источники: Urals — Минэкономразвития России; Azeri Light —
+Минфин Азербайджана (справки об исполнении бюджета, I пол.
+2025 и I пол. 2026 г.); Brent — datasets/oil-prices.
