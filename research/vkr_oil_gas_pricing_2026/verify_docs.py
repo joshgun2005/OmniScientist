@@ -155,6 +155,29 @@ def check_sources():
     return len(miss) + len(bad)
 
 
+def check_model_doc_sources():
+    """Документ 2: каждая позиция списка должна встречаться в сносках."""
+    path = os.path.join(OUT, "blocks_model.json")
+    if not os.path.exists(path):
+        return 0
+    data = json.load(open(path, encoding="utf-8"))
+    keys = set(data["cited"])
+    notes = data["footnotes"]
+    in_notes = set()
+    for k in S.REGISTRY:
+        head = S.REGISTRY[k]["gost"][:40]
+        if any(head in n or S.short(k) in n for n in notes):
+            in_notes.add(k)
+    only_list = sorted(keys - in_notes)
+    only_notes = sorted(in_notes - keys)
+    print(f"  документ 2: список = {len(keys)}, в сносках = {len(in_notes)}")
+    if only_list:
+        print(f"  ВНИМАНИЕ: есть в списке, нет в сносках — {only_list}")
+    if only_notes:
+        print(f"  ВНИМАНИЕ: есть в сносках, нет в списке — {only_notes}")
+    return len(only_list) + len(only_notes)
+
+
 if __name__ == "__main__":
     bad = 0
     for name, title in (
@@ -165,4 +188,5 @@ if __name__ == "__main__":
         if os.path.exists(path):
             bad += check_doc(path, title)
     bad += check_sources()
+    bad += check_model_doc_sources()
     print("\nитог:", "ок" if bad == 0 else f"замечаний {bad}")
